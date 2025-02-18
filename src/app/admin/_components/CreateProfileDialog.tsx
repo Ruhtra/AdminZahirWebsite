@@ -216,7 +216,7 @@ export function CreateProfileDialog({
             });
           }
         }
-      } catch (error) {
+      } catch {
         toast.error("Something went wrong. Please try again.");
       }
     });

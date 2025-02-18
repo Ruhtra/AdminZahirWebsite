@@ -32,7 +32,7 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
         });
       }
       // Aqui você pode adicionar lógica para remover o perfil da lista, se necessário
-    } catch (error) {
+    } catch {
       toast.error("Something went wrong. Please try again.");
     }
   };

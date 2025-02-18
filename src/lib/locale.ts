@@ -38,8 +38,9 @@ export async function getLocaleByCep(cep: string) {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getLatLng(address: any) {
-  let url = `https://maps.googleapis.com/maps/api/geocode/json?address=${address.logradouro} - ${address.bairro}, ${address.localidade} - ${address.uf}, ${address.cep}, ${address.pais}&key=${key}`;
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${address.logradouro} - ${address.bairro}, ${address.localidade} - ${address.uf}, ${address.cep}, ${address.pais}&key=${key}`;
 
   const response_lat_log = await axios.get(url);
   if (response_lat_log.status <= 200 && response_lat_log.status > 300)
@@ -66,7 +67,7 @@ async function getLatLng(address: any) {
 // }
 
 async function getLocalByCep_viacep(cep: string) {
-  let url = `https://viacep.com.br/ws/${cep}/json/`;
+  const url = `https://viacep.com.br/ws/${cep}/json/`;
 
   const response = await axios.get(url);
 
@@ -79,7 +80,7 @@ async function getLocalByCep_viacep(cep: string) {
 }
 
 async function getLocalByCep_google(cep: string) {
-  let url = `https://maps.googleapis.com/maps/api/geocode/json?address=${cep}&key=${key}`;
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${cep}&key=${key}`;
 
   const response_lat_log = await axios.get(url);
   if (response_lat_log.status <= 200 && response_lat_log.status > 300)

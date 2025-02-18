@@ -36,7 +36,7 @@ export interface GetAllProfilesDTO {
   };
   picture?: string;
 }
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const profiles = await db.profiles.findMany({
       include: {

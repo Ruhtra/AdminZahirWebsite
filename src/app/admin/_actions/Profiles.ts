@@ -17,16 +17,15 @@ export async function CreateProfile({
   if (!parseProfile.success) return { error: "Invalid data" };
   const profile = parseProfile.data;
 
+  let lat_log;
+
   if (profile.activeAddress) {
     try {
-      var lat_log = await getLocaleByCep(profile.local.cep);
+      lat_log = await getLocaleByCep(profile.local.cep);
     } catch {
       return { error: "Não foi possivel obter a localidade especificada!" };
     }
   }
-
-  console.log("exportei lat lng");
-  console.log(lat_log);
 
   await db.profiles.create({
     data: {
@@ -106,9 +105,10 @@ export async function UpdateProfile({
     });
   }
 
+  let lat_log;
   if (profile.activeAddress) {
     try {
-      var lat_log = await getLocaleByCep(profile.local.cep);
+      lat_log = await getLocaleByCep(profile.local.cep);
     } catch {
       return { error: "Não foi possivel obter a localidade especificada!" };
     }

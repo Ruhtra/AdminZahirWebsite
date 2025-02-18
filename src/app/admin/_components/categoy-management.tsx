@@ -15,6 +15,7 @@ export function CategoryManager({
   availableCategories: string[];
 }) {
   const { setValue, watch } = useFormContext();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const selectedCategories = watch("categories") || [];
   const [newCategory, setNewCategory] = useState("");
   const [searchTerm, setSearchTerm] = useState("");

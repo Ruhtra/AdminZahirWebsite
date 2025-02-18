@@ -4,7 +4,7 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import React, { ReactNode } from "react";
 
-export default function layoutAdmin({ children }: { children: ReactNode }) {
+export default function LayoutAdmin({ children }: { children: ReactNode }) {
   const { theme, setTheme } = useTheme();
   return (
     <div>
