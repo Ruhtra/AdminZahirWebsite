@@ -85,7 +85,7 @@ export function CreateProfileDialog({
   const { data: userData, isPending: isLoading } = useQuery({
     queryKey: ["profile", idProfile],
     queryFn: () => fetchUser(idProfile),
-    enabled: !!idProfile,
+    enabled: !!idProfile && open,
     refetchOnMount: true,
   });
   const [includeAddress, setIncludeAddress] = useState(false);

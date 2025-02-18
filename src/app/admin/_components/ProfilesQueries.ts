@@ -29,7 +29,7 @@ export const useProfileOptions = () => {
     )
   );
 
-  const types = ["Restaurante", "Comidas", "Exemplos", "Outro"]; //estou simulando o banco
+  const types = ["hospedagem", "restaurante", "parque", "lugares", "quadros"]; //estou simulando o banco
 
   return {
     categories,

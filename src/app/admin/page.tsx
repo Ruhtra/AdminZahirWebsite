@@ -42,7 +42,10 @@ export default function AdminPage() {
         const nameMatch = profile.name
           .toLowerCase()
           .includes(searchTerm.toLowerCase());
-        const stateMatch = !stateFilter || profile.local?.uf === stateFilter;
+        const stateMatch =
+          stateFilter === "all" ||
+          !stateFilter ||
+          profile.local?.uf === stateFilter;
         const categoryMatch =
           categoryFilters.length === 0 ||
           profile.category.categories.some((cat) =>
@@ -133,7 +136,7 @@ export default function AdminPage() {
               <SelectValue placeholder="Filter by state" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All States</SelectItem>
+              <SelectItem value={"all"}>All States</SelectItem>
               {uniqueStates
                 .filter((state): state is string => !!state)
                 .map((state) => (
