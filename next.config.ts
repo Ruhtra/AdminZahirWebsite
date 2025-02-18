@@ -1,7 +1,23 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "vdeckufzmvmcfnfcyugz.supabase.co",
+      },
+      {
+        protocol: "https",
+        hostname: "zahir-image.s3.sa-east-1.amazonaws.com",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

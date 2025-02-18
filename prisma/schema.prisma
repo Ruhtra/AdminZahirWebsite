@@ -15,14 +15,15 @@ datasource db {
 }
 
 model Profiles {
-  id           String       @id @default(cuid())
-  name         String
-  resume       String?
-  imageUrl     String?
-  informations String?
-  telephones   Telephones[]
-  movie        String?
-  address      Address?
+  id                 String   @id @default(cuid())
+  name               String
+  resume             String?
+  imageUrl           String?
+  informations       String?
+  telephonesWhatsapp String[]
+  telephonesPhone    String[]
+  movie              String?
+  address            Address?
 
   promotionActive Boolean
   promotion       Promotion?
@@ -36,14 +37,6 @@ model Profiles {
 enum TelephoneType {
   whatsapp
   phone
-}
-
-model Telephones {
-  id         String        @id @default(cuid())
-  number     String
-  type       TelephoneType
-  profilesId String?
-  Profiles   Profiles?     @relation(fields: [profilesId], references: [id])
 }
 
 model Address {

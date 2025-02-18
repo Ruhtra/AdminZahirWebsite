@@ -42,11 +42,8 @@ export async function GET(request: Request) {
       include: {
         address: true,
         promotion: true,
-        telephones: true,
       },
     });
-
-    if (!profiles) return;
 
     const response: GetAllProfilesDTO[] = profiles.map((data) => {
       return {
@@ -58,12 +55,8 @@ export async function GET(request: Request) {
         },
         picture: data.imageUrl ?? undefined,
         telephones: {
-          whatsapp: data.telephones
-            .filter((e) => e.type == "whatsapp")
-            .map((e) => e.number),
-          telephone: data.telephones
-            .filter((e) => e.type == "phone")
-            .map((e) => e.number),
+          whatsapp: data.telephonesWhatsapp,
+          telephone: data.telephonesPhone,
         },
         informations: data.informations ?? undefined,
         resume: data.resume ?? undefined,

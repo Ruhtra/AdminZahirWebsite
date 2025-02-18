@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { GetAllProfilesDTO } from "../api/profiles/route";
 import { CreateProfileDialog } from "./_components/CreateProfileDialog";
+import CardTemp from "./_components/CardTemp";
 
 export default function AdminPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -26,15 +27,7 @@ export default function AdminPage() {
         <button onClick={() => setIsCreateOpen(true)}>Criar</button>
         <div className="flex flex-col gap-2">
           {profiles?.map((profile) => (
-            <div className="bg-red-200" key={profile._id}>
-              <h2>{profile.name}</h2>
-              <p>{profile.resume}</p>
-
-              <div className="flex justify-between bg-green-200">
-                <button>Editar</button>
-                <button>remover</button>
-              </div>
-            </div>
+            <CardTemp key={profile._id} profile={profile} />
           ))}
         </div>
       </div>

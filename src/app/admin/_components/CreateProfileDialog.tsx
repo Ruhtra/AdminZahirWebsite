@@ -1,10 +1,9 @@
 "use client";
 
 import { FormDescription } from "@/components/ui/form";
-
 import { useState, useTransition, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import type * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +14,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Form,
   FormControl,
   FormField,
   FormItem,
@@ -33,6 +31,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { GetAllProfilesDTO } from "@/app/api/profiles/route";
 import { ImageUploadFieldWithUrl } from "./Image-upload-field-url";
 import { Checkbox } from "@/components/ui/checkbox";
+import { TelephoneFields } from "./TelephoneFields";
+import { queryClient } from "@/lib/queryCLient";
+import { UpdateProfile, CreateProfile } from "../_actions/Profiles";
 
 export type FormValues = z.infer<typeof createProfileSchema>;
 
@@ -89,34 +90,73 @@ export function CreateProfileDialog({
   const form = useForm<FormValues>({
     resolver: zodResolver(createProfileSchema),
     defaultValues: {
-      name: "",
-      resume: "",
-      informations: "",
-      telephones: [],
-      activeAddress: false,
+      name: userData?.name || "",
+      resume: userData?.resume || "",
+      informations: userData?.informations || "",
+      telephones: userData
+        ? [
+            ...userData.telephones.whatsapp.map((number) => ({
+              type: "whatsapp" as const,
+              number,
+            })),
+            ...userData.telephones.telephone.map((number) => ({
+              type: "phone" as const,
+              number,
+            })),
+          ]
+        : [],
+      activeAddress: !!userData?.local,
       local: {
-        cep: "",
-        uf: "SP",
-        city: "",
-        neighborhood: "",
-        street: "",
-        number: "",
-        complement: "",
+        cep: userData?.local?.cep || "",
+        uf: (userData?.local?.uf as string) || "SP",
+        city: userData?.local?.city || "",
+        neighborhood: userData?.local?.neighborhood || "",
+        street: userData?.local?.street || "",
+        number: userData?.local?.number || "",
+        complement: userData?.local?.complement || "",
       },
-      movie: "",
-      activePromotion: false,
+      movie: userData?.movie || "",
+      activePromotion: userData?.promotion?.active ?? false,
       promotion: {
-        title: "",
-        description: "",
+        title: userData?.promotion?.title || "",
+        description: userData?.promotion?.description || "",
       },
     },
   });
 
+  console.log(form.formState.errors);
+
   useEffect(() => {
     if (userData) {
-      Object.entries(userData).forEach(([key, value]) => {
-        form.setValue(key as keyof FormValues, value);
-      });
+      form.setValue("name", userData.name);
+      form.setValue("resume", userData.resume);
+      form.setValue("informations", userData.informations);
+      form.setValue("telephones", [
+        ...userData.telephones.whatsapp.map((number) => ({
+          type: "whatsapp" as const,
+          number,
+        })),
+        ...userData.telephones.telephone.map((number) => ({
+          type: "phone" as const,
+          number,
+        })),
+      ]);
+
+      form.setValue("activeAddress", !!userData.local);
+      form.setValue("local.cep", userData.local?.cep || "");
+      form.setValue("local.uf", userData.local?.uf as string);
+      form.setValue("local.city", userData.local?.city || "");
+      form.setValue("local.neighborhood", userData.local?.neighborhood || "");
+      form.setValue("local.street", userData.local?.street || "");
+      form.setValue("local.number", userData.local?.number || "");
+      form.setValue("local.complement", userData.local?.complement || "");
+      form.setValue("movie", userData.movie);
+      form.setValue("activePromotion", userData.promotion?.active ?? false);
+      form.setValue("promotion.title", userData.promotion?.title || "");
+      form.setValue(
+        "promotion.description",
+        userData.promotion?.description || ""
+      );
       setIncludeAddress(!!userData.local);
     }
   }, [userData, form]);
@@ -124,19 +164,40 @@ export function CreateProfileDialog({
   function onSubmit(values: FormValues) {
     startTransition(async () => {
       try {
-        const submissionValues = {
-          ...values,
-          local: includeAddress ? values.local : undefined,
-        };
         if (idProfile) {
-          // TODO: Implement update logic
-          toast.success("Profile updated successfully");
+          const data = await UpdateProfile({
+            idProfile: idProfile,
+            data: values,
+          });
+
+          if (data.error) toast(data.error);
+          if (data.success) {
+            await queryClient.refetchQueries({
+              queryKey: ["profiles"],
+            });
+            queryClient.removeQueries({
+              queryKey: ["profile", idProfile],
+            });
+
+            onOpenChange(false);
+            form.reset();
+            toast("Profile atualizado com sucesso");
+          }
         } else {
-          // TODO: Implement create logic
-          toast.success("Profile created successfully");
+          const data = await CreateProfile({
+            data: values,
+          });
+          if (data.error) toast(data.error);
+          if (data.success) {
+            onOpenChange(false);
+            form.reset();
+            toast("Profile criado com sucesso");
+            // setPreviewUrl(null);
+            await queryClient.refetchQueries({
+              queryKey: ["profiles"],
+            });
+          }
         }
-        onOpenChange(false);
-        form.reset();
       } catch (error) {
         toast.error("Something went wrong. Please try again.");
       }
@@ -162,7 +223,7 @@ export function CreateProfileDialog({
             <Skeleton className="h-10 w-full" />
           </div>
         ) : (
-          <Form {...form}>
+          <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <Tabs defaultValue="basic" className="w-full">
                 <TabsList className="grid w-full grid-cols-4 mb-6">
@@ -239,55 +300,7 @@ export function CreateProfileDialog({
                 </TabsContent>
                 <TabsContent value="contact" className="space-y-4">
                   {/* Telephones */}
-                  {form.watch("telephones").map((_, index) => (
-                    <div key={index} className="flex space-x-2">
-                      <FormField
-                        control={form.control}
-                        name={`telephones.${index}.type`}
-                        render={({ field }) => (
-                          <FormItem className="flex-1">
-                            <FormLabel>Type</FormLabel>
-                            <FormControl>
-                              <select
-                                {...field}
-                                className="w-full p-2 border rounded bg-background"
-                              >
-                                <option value="whatsapp">WhatsApp</option>
-                                <option value="phone">Phone</option>
-                              </select>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name={`telephones.${index}.number`}
-                        render={({ field }) => (
-                          <FormItem className="flex-1">
-                            <FormLabel>Number</FormLabel>
-                            <FormControl>
-                              <Input {...field} className="bg-background" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() =>
-                      form.setValue("telephones", [
-                        ...form.watch("telephones"),
-                        { type: "phone", number: "" },
-                      ])
-                    }
-                    className="w-full"
-                  >
-                    Add Phone
-                  </Button>
+                  <TelephoneFields />
 
                   {/* Address Toggle Button */}
                   <FormField
@@ -481,7 +494,7 @@ export function CreateProfileDialog({
                   : "Add Profile"}
               </Button>
             </form>
-          </Form>
+          </FormProvider>
         )}
       </DialogContent>
     </Dialog>
