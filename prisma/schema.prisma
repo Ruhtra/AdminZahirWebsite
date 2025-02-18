@@ -34,11 +34,6 @@ model Profiles {
   createdAt DateTime
 }
 
-enum TelephoneType {
-  whatsapp
-  phone
-}
-
 model Address {
   id           String  @id @default(cuid())
   cep          String
@@ -52,7 +47,7 @@ model Address {
   lat Float
   lng Float
 
-  Profiles   Profiles @relation(fields: [profilesId], references: [id])
+  Profiles   Profiles @relation(fields: [profilesId], references: [id], onDelete: Cascade)
   profilesId String   @unique
 }
 
@@ -61,7 +56,7 @@ model Promotion {
   title       String?
   description String?
 
-  Profiles   Profiles? @relation(fields: [profilesId], references: [id])
+  Profiles   Profiles? @relation(fields: [profilesId], references: [id], onDelete: Cascade)
   profilesId String?   @unique
 }
 

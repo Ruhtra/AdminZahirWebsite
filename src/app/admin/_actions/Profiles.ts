@@ -187,5 +187,5 @@ export async function deleteProfile({ idProfile }: { idProfile: string }) {
     },
   });
 
-  return { success: "Profile Updated success!" };
+  return { success: "Profile Deleted success!" };
 }

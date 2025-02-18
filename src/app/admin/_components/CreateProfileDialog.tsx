@@ -234,7 +234,7 @@ export function CreateProfileDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {isLoadingOptions || isLoading ? (
+        {isLoadingOptions || (idProfile && isLoading) ? (
           <div className="space-y-6">
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />

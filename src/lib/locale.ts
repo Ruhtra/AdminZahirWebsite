@@ -24,9 +24,15 @@ export async function getLocaleByCep(cep: string) {
     return response_lat_log;
   } catch (error) {
     try {
+      console.log("ERRO Nº 1");
+      console.log(error);
+
       const response_lat_log = await getLocalByCep_google(cep);
       return response_lat_log;
     } catch (error2) {
+      console.log("ERRO Nº 2");
+      console.log(error2);
+
       throw new Error("Não foi possivel obter a localidade especificada");
     }
   }
@@ -65,7 +71,7 @@ async function getLocalByCep_viacep(cep: string) {
   const response = await axios.get(url);
 
   if (response.status <= 200 && response.status > 300)
-    throw new Error(`Erro ao consumir API do Google Maps`);
+    throw new Error(`Erro ao consumir API do Via Cep`);
   if (response.data.erro != undefined)
     throw new Error("Não foi possivel encontrar o cep específicado");
 
