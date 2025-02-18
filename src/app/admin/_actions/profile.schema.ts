@@ -94,6 +94,8 @@ export const createProfileSchema = z
           .string()
           .max(250, "Descrição da promoção deve ter no máximo 250 caracteres"),
       }),
+      categories: z.array(z.string()),
+      type: z.array(z.string()),
     })
   )
   .refine(

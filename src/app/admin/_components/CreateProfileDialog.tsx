@@ -34,6 +34,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { TelephoneFields } from "./TelephoneFields";
 import { queryClient } from "@/lib/queryCLient";
 import { UpdateProfile, CreateProfile } from "../_actions/Profiles";
+import { CategoryManager } from "./categoy-management";
+import { useProfileOptions } from "./ProfilesQueries";
+import { TypeManager } from "./TypeManager";
 
 export type FormValues = z.infer<typeof createProfileSchema>;
 
@@ -121,6 +124,8 @@ export function CreateProfileDialog({
         title: userData?.promotion?.title || "",
         description: userData?.promotion?.description || "",
       },
+      categories: userData?.category?.categories || [],
+      type: userData?.category.type || [],
     },
   });
 
@@ -152,14 +157,27 @@ export function CreateProfileDialog({
       form.setValue("local.complement", userData.local?.complement || "");
       form.setValue("movie", userData.movie);
       form.setValue("activePromotion", userData.promotion?.active ?? false);
-      form.setValue("promotion.title", userData.promotion?.title || "");
+      form.setValue("promotion.title", userData?.promotion?.title || "");
       form.setValue(
         "promotion.description",
-        userData.promotion?.description || ""
+        userData?.promotion?.description || ""
       );
+      form.setValue("categories", userData.category?.categories || []);
+      form.setValue("type", userData?.category.type || []);
       setIncludeAddress(!!userData.local);
     }
   }, [userData, form]);
+
+  const {
+    categories,
+    types,
+    isLoading: isLoadingOptions,
+    isError,
+  } = useProfileOptions();
+
+  if (isError) {
+    return <div>Error loading options. Please try again later.</div>;
+  }
 
   function onSubmit(values: FormValues) {
     startTransition(async () => {
@@ -216,7 +234,7 @@ export function CreateProfileDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {idProfile && isLoading ? (
+        {isLoadingOptions || isLoading ? (
           <div className="space-y-6">
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
@@ -226,11 +244,12 @@ export function CreateProfileDialog({
           <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 mb-6">
+                <TabsList className="grid w-full grid-cols-5 mb-6">
                   <TabsTrigger value="image">Image</TabsTrigger>
                   <TabsTrigger value="basic">Basic Info</TabsTrigger>
                   <TabsTrigger value="contact">Contact</TabsTrigger>
                   <TabsTrigger value="promotion">Promotion</TabsTrigger>
+                  <TabsTrigger value="categories">Categories</TabsTrigger>
                 </TabsList>
                 <TabsContent value="image" className="space-y-4">
                   <ImageUploadFieldWithUrl
@@ -477,6 +496,10 @@ export function CreateProfileDialog({
                       </FormItem>
                     )}
                   />
+                </TabsContent>
+                <TabsContent value="categories" className="space-y-4">
+                  <CategoryManager availableCategories={categories} />
+                  <TypeManager availableTypes={types} />
                 </TabsContent>
               </Tabs>
 

@@ -47,8 +47,8 @@ export async function CreateProfile({
         : undefined,
       createdAt: new Date(),
       name: profile.name,
-      type: [],
-      categories: [], //TODO
+      type: profile.type,
+      categories: profile.categories,
       // imageUrl: "anyimage", // TODO
       informations: profile.informations,
       movie: profile.movie,
@@ -148,8 +148,8 @@ export async function UpdateProfile({
           }
         : undefined,
       name: profile.name,
-      type: [], //TODO
-      categories: [], //TODO
+      type: profile.type,
+      categories: profile.categories,
       // imageUrl //TODO
       informations: profile.informations,
       movie: profile.movie,
