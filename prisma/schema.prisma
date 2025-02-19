@@ -33,6 +33,7 @@ model Profiles {
 
   type       String[]
   categories String[]
+  HomePage   HomePage[]
 
   createdAt DateTime
 }
@@ -64,6 +65,18 @@ model Promotion {
 }
 
 model HomePage {
-  id    String @id @default(cuid())
-  order Int
+  id        String   @id @default(cuid())
+  profileId String
+  profile   Profiles @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  order     Int
+}
+
+model followers {
+  id        String @id @default(cuid())
+  instagram Int
+  tiktok    Int
+  youtube   Int
+  total     Int
+
+  createdAt DateTime
 }
