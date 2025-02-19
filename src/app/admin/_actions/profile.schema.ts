@@ -92,7 +92,28 @@ export const createProfileSchema = z
           number: z.string().min(1, "Número de telefone é obrigatório"),
         })
       ),
-      movie: z.string().optional(),
+      movie: z
+        .string()
+        .optional()
+        .transform((url) => {
+          if (!url) return url;
+
+          // Remove parâmetros da URL
+          let cleanUrl = url.split("?")[0];
+
+          // Remove barra final se existir
+          cleanUrl = cleanUrl.replace(/\/$/, "");
+
+          // Adiciona '/embed' apenas se não estiver presente
+          if (!cleanUrl.endsWith("/embed")) {
+            cleanUrl += "/embed";
+          }
+
+          return cleanUrl;
+        })
+        .refine((url) => url?.endsWith("/embed"), {
+          message: "A URL deve terminar com /embed",
+        }),
       activePromotion: z.boolean(),
       promotion: z.object({
         title: z
