@@ -254,7 +254,7 @@ export function CreateProfileDialog({
                 <TabsContent value="image" className="space-y-4">
                   <ImageUploadFieldWithUrl
                     form={form}
-                    name="profileImage"
+                    name="picture"
                     initialImageUrl={userData?.picture}
                     isPending={isPending}
                   />

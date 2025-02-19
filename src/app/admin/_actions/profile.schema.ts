@@ -70,6 +70,14 @@ export const createProfileSchema = z
         .string()
         .min(1, "Nome é obrigatório")
         .max(100, "Nome deve ter no máximo 100 caracteres"),
+      picture: z.optional(
+        z
+          .instanceof(File)
+          .refine(
+            (file) => file.size <= 5000000,
+            `Tamanho máximo do arquivo é 5MB.`
+          )
+      ),
       resume: z
         .string()
         .max(500, "Resumo deve ter no máximo 500 caracteres")

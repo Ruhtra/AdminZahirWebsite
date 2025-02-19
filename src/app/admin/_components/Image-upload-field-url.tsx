@@ -62,9 +62,12 @@ export function ImageUploadFieldWithUrl({
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewUrl(reader.result as string);
-        form.setValue(name, reader.result as string);
+        // form.setValue(name, reader.result as string);
       };
+      // reader.readAsDataURL(file);
+
       reader.readAsDataURL(file);
+      form.setValue(name, file);
     }
   };
 

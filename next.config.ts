@@ -10,11 +10,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "vdeckufzmvmcfnfcyugz.supabase.co",
-      },
-      {
-        protocol: "https",
-        hostname: "zahir-image.s3.sa-east-1.amazonaws.com",
+        hostname: "btfhhwkwasgwxaphlfln.supabase.co",
       },
     ],
   },

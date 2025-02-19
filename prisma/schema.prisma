@@ -15,10 +15,13 @@ datasource db {
 }
 
 model Profiles {
-  id                 String   @id @default(cuid())
-  name               String
-  resume             String?
-  imageUrl           String?
+  id     String  @id @default(cuid())
+  name   String
+  resume String?
+
+  imageUrl  String?
+  imageName String?
+
   informations       String?
   telephonesWhatsapp String[]
   telephonesPhone    String[]
