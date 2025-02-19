@@ -17,6 +17,10 @@ import {
 import { Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import { MultiSelect } from "./_components/MultiSelect";
 
+function removeDiacritics(str: string) {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
 export default function AdminPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -37,11 +41,11 @@ export default function AdminPage() {
 
   const filteredProfiles = useMemo(() => {
     if (!profiles) return [];
+    const normalizedSearchTerm = removeDiacritics(searchTerm.toLowerCase());
     return profiles
       .filter((profile) => {
-        const nameMatch = profile.name
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase());
+        const normalizedName = removeDiacritics(profile.name.toLowerCase());
+        const nameMatch = normalizedName.includes(normalizedSearchTerm);
         const stateMatch =
           stateFilter === "all" ||
           !stateFilter ||

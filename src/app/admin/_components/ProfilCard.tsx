@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import type { GetAllProfilesDTO } from "../../api/profiles/route";
 import Image from "next/image";
@@ -9,6 +11,17 @@ import { deleteProfile } from "../_actions/Profiles";
 import { toast } from "sonner";
 import { queryClient } from "@/lib/queryCLient";
 import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ProfileCardProps {
   profile: GetAllProfilesDTO;
@@ -16,6 +29,7 @@ interface ProfileCardProps {
 
 export default function ProfileCard({ profile }: ProfileCardProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleDelete = async (profileId: string) => {
     try {
@@ -26,14 +40,14 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
       if (data.error) toast(data.error);
       if (data.success) {
         toast("Profile deletado com sucesso");
-        // setPreviewUrl(null);
         await queryClient.refetchQueries({
           queryKey: ["profiles"],
         });
       }
-      // Aqui você pode adicionar lógica para remover o perfil da lista, se necessário
     } catch {
       toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsDeleteDialogOpen(false);
     }
   };
 
@@ -82,15 +96,36 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
               size="sm"
               onClick={() => setIsCreateOpen(true)}
             >
-              Edit
+              Editar
             </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => handleDelete(profile._id)}
+            <AlertDialog
+              open={isDeleteDialogOpen}
+              onOpenChange={setIsDeleteDialogOpen}
             >
-              Delete
-            </Button>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm">
+                  Deletar
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Você tem certeza absoluta?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta ação não pode ser desfeita. Isso excluirá
+                    permanentemente o perfil e removerá todos os dados
+                    associados, incluindo imagens e outros conteúdos.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => handleDelete(profile._id)}>
+                    Deletar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </CardFooter>
       </Card>
