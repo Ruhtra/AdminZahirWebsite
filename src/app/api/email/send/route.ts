@@ -146,6 +146,17 @@ export async function POST(request: Request) {
 
     const { arroba, email, mensagem, nome, telefone } = parsedData.data;
 
+    
+    
+    console.log(EmailTemplate(
+      nome,
+      arroba,
+      email,
+      telefone,
+      mensagem,
+      emailcontato
+    ));
+    
     // Configuração do email
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: "zahirApp <contact@sitedozahir.com>",
@@ -163,7 +174,9 @@ export async function POST(request: Request) {
     });
 
     if (emailError) {
-      return NextResponse.json({ error: emailError }, { status: 400 });
+      console.log(emailError);
+      
+      return NextResponse.json({ error: 'Eror ao enviar email' }, { status: 400 });
     }
 
     return NextResponse.json(
