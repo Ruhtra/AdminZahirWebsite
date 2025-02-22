@@ -20,11 +20,9 @@ const getAllFollowersSchema = z.object({
     .nonempty("O campo 'email' é obrigatório."),
   telefone: z
     .string()
-    .regex(/^\+?[1-9]\d{1,14}$/, "Insira um número de telefone válido.")
     .nonempty("O campo 'telefone' é obrigatório."),
   mensagem: z
     .string()
-    .min(10, "A mensagem deve ter pelo menos 10 caracteres.")
     .nonempty("O campo 'mensagem' é obrigatório."),
 });
 
