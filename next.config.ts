@@ -17,11 +17,11 @@ const nextConfig: NextConfig = {
 
   async redirects() {
     return [
-      {
-        source: "/",
-        destination: "/admin/",
-        permanent: false,
-      },
+      // {
+      //   source: "/",
+      //   destination: "/admin/",
+      //   permanent: false,
+      // },
     ];
   },
 

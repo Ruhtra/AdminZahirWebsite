@@ -28,6 +28,19 @@ body {
     --input: 280 30% 85%;
     --ring: 280 60% 50%;
     --radius: 0.5rem;
+
+    --color-background-start: #8b5cf6;
+    --color-background-end: #3b82f6;
+    --color-form-background: rgba(255, 255, 255, 0.2);
+    --color-input-background: rgba(255, 255, 255, 0.5);
+    --color-text: #1f2937;
+    --color-placeholder: #6b7280;
+    --color-button-start: #ec4899;
+    --color-button-end: #eab308;
+    --color-button-hover-start: #db2777;
+    --color-button-hover-end: #d97706;
+    --color-success: #10b981;
+    --color-error: #ef4444;
   }
 
   .dark {
@@ -50,6 +63,19 @@ body {
     --border: 280 30% 20%;
     --input: 280 30% 20%;
     --ring: 280 60% 50%;
+
+    --color-background-start: #1e293b;
+    --color-background-end: #0f172a;
+    --color-form-background: rgba(255, 255, 255, 0.1);
+    --color-input-background: rgba(255, 255, 255, 0.15);
+    --color-text: #e5e7eb;
+    --color-placeholder: #9ca3af;
+    --color-button-start: #ec4899;
+    --color-button-end: #eab308;
+    --color-button-hover-start: #db2777;
+    --color-button-hover-end: #d97706;
+    --color-success: #34d399;
+    --color-error: #f87171;
   }
 }
 
