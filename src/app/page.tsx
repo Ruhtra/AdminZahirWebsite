@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -24,32 +24,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
-
-const formSchema = z.object({
-  email: z.string().email({
-    message: "Email inválido.",
-  }),
-  password: z.string().min(6, {
-    message: "A senha deve ter pelo menos 6 caracteres.",
-  }),
-});
-
-// Simulated login function
-const login = async (
-  email: string,
-  password: string
-): Promise<{ success?: boolean; error?: string }> => {
-  try {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    if (email.toLowerCase() == "administrador@2025.com".toLocaleLowerCase()) {
-      if (password == "192837465") return { success: true };
-    }
-    return { error: "Credenciais inválidas" };
-  } catch (error) {
-    return { error: "Erro interno, contate o suporte" };
-  }
-};
+import { formSchema } from "./_actions/login.schema";
+import { login } from "./_actions/login";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -58,6 +34,13 @@ export default function LoginPage() {
     type: "success" | "error";
     text: string;
   } | null>(null);
+
+  useEffect(() => {
+    const item = localStorage.getItem("logged");
+    if (item) {
+      router.push("/admin");
+    }
+  }, [router]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -72,12 +55,14 @@ export default function LoginPage() {
     setMessage(null);
 
     try {
-      const result = await login(values.email, values.password);
+      const result = await login(values);
       if (result.success) {
         setMessage({
           type: "success",
           text: "Login bem-sucedido! Você será redirecionado",
         });
+
+        localStorage.setItem("logged", "true");
 
         setTimeout(() => {
           router.push("/admin");
@@ -88,7 +73,7 @@ export default function LoginPage() {
           text: result.error || "Erro desconhecido",
         });
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: "error", text: "Ocorreu um erro inesperado." });
     } finally {
       setIsLoading(false);

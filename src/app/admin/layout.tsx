@@ -1,11 +1,22 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LayoutAdmin({ children }: { children: ReactNode }) {
   const { theme, setTheme } = useTheme();
+  const router = useRouter();
+
+  useEffect(() => {
+    const item = localStorage.getItem("logged");
+    if (!item) {
+      router.push("/");
+    }
+  }, [router]);
+
   return (
     <div>
       <header className="mt-4 ml-8 flex  items-center justify-center gap-8">
