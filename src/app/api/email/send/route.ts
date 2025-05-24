@@ -159,7 +159,7 @@ export async function POST(request: Request) {
     
     // Configuração do email
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: "zahirApp <contact@sitedozahir.com>",
+      from: "contact@sitedozahir.com",
       to: [email, emailcontato],
       subject: `Confirmação de contato para Zahir`,
       html: EmailTemplate(
