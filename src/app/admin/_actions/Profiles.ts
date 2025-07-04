@@ -223,9 +223,15 @@ export async function UpdateProfile({
         movie: profile.movie,
         promotionActive: profile.activePromotion,
         promotion: {
-          update: {
-            description: profile.promotion.description,
-            title: profile.promotion.title,
+          upsert: {
+            create: {
+              description: profile.promotion.description,
+              title: profile.promotion.title,
+            },
+            update: {
+              description: profile.promotion.description,
+              title: profile.promotion.title,
+            },
           },
         },
         resume: profile.resume,
