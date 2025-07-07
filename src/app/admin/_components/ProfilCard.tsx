@@ -31,6 +31,8 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+  if (profile.name == "teste") console.log(profile);
+
   const handleDelete = async (profileId: string) => {
     try {
       const data = await deleteProfile({
@@ -61,7 +63,7 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
       <Card className="overflow-hidden">
         <div className="relative aspect-square">
           <Image
-            src={profile.picture || "/placeholder.svg"}
+            src={(profile.picture || "/placeholder.svg") + `?v=${Date.now()}`}
             alt={profile.name}
             fill
             className="object-cover"

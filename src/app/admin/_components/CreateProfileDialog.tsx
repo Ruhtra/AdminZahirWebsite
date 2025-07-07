@@ -128,8 +128,8 @@ export function CreateProfileDialog({
       type: userData?.category.type || [],
     },
   });
-
-  console.log(form.formState.errors);
+  if (Object.keys(form.formState.errors).length > 0)
+    console.log(form.formState.errors);
 
   useEffect(() => {
     if (userData) {
@@ -155,7 +155,7 @@ export function CreateProfileDialog({
       form.setValue("local.street", userData.local?.street || "");
       form.setValue("local.number", userData.local?.number || "");
       form.setValue("local.complement", userData.local?.complement || "");
-      form.setValue("movie", userData.movie);
+      form.setValue("movie", userData.movie || "");
       form.setValue("activePromotion", userData.promotion?.active ?? false);
       form.setValue("promotion.title", userData?.promotion?.title || "");
       form.setValue(
@@ -255,7 +255,7 @@ export function CreateProfileDialog({
                   <ImageUploadFieldWithUrl
                     form={form}
                     name="picture"
-                    initialImageUrl={userData?.picture}
+                    initialUrl={userData?.picture}
                     isPending={isPending}
                   />
                 </TabsContent>

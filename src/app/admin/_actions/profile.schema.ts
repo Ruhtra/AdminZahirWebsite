@@ -96,24 +96,21 @@ export const createProfileSchema = z
         .string()
         .optional()
         .transform((url) => {
-          if (!url) return url;
+          if (!url || url.trim() === "") return ""; // permite vazio
 
-          // Remove parâmetros da URL
           let cleanUrl = url.split("?")[0];
-
-          // Remove barra final se existir
           cleanUrl = cleanUrl.replace(/\/$/, "");
 
-          // Adiciona '/embed' apenas se não estiver presente
-          if (!cleanUrl.endsWith("/embed")) {
-            cleanUrl += "/embed";
-          }
+          // if (!cleanUrl.endsWith("/embed")) {
+          //   cleanUrl += "/embed";
+          // }
 
           return cleanUrl;
         })
-        .refine((url) => url?.endsWith("/embed"), {
+        .refine((url) => url === "" || url.endsWith("/embed"), {
           message: "A URL deve terminar com /embed",
         }),
+
       activePromotion: z.boolean(),
       promotion: z.object({
         title: z
