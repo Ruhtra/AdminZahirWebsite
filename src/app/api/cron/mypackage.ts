@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // import puppeteer from 'puppeteer-core'
 
 
@@ -35,18 +36,13 @@ class Instagram {
 
 
         const chromium = (await import("@sparticuz/chromium")).default;
-        let puppeteer: any,
-            launchOptions: any = {
-                headless: true,
-            };
 
-        puppeteer = await import("puppeteer-core");
-        launchOptions = {
-            ...launchOptions,
+        const puppeteer = await import("puppeteer-core");
+        const launchOptions = {
+            headless: true,
             args: chromium.args,
             executablePath: await chromium.executablePath(),
         }
-
 
 
         const browser = await puppeteer.launch(launchOptions);
@@ -99,21 +95,17 @@ class Tiktok {
     async getTikTokFollowers() {
 
         const chromium = (await import("@sparticuz/chromium")).default;
-        let puppeteer: any,
-            launchOptions: any = {
-                headless: true,
-            };
 
-        puppeteer = await import("puppeteer-core");
-        launchOptions = {
-            ...launchOptions,
+        const puppeteer = await import("puppeteer-core");
+        const launchOptions = {
+            headless: true,
             args: chromium.args,
             executablePath: await chromium.executablePath(),
         }
 
 
 
-        const browser = await puppeteer.launch();
+        const browser = await puppeteer.launch(launchOptions);
         const page = await browser.newPage();
         await page.goto(`https://www.tiktok.com/${this._name}`);
         await page.waitForSelector('strong[data-e2e="followers-count"]');
@@ -157,20 +149,16 @@ class YouTube {
     async getYouTubeFollowers() {
 
         const chromium = (await import("@sparticuz/chromium")).default;
-        let puppeteer: any,
-            launchOptions: any = {
-                headless: true,
-            };
 
-        puppeteer = await import("puppeteer-core");
-        launchOptions = {
-            ...launchOptions,
+        const puppeteer = await import("puppeteer-core");
+        const launchOptions = {
+            headless: true,
             args: chromium.args,
             executablePath: await chromium.executablePath(),
         }
 
 
-        const browser = await puppeteer.launch({ headless: true });
+        const browser = await puppeteer.launch(launchOptions);
         const page = await browser.newPage();
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
         await page.goto(`https://www.youtube.com/${this._name}`, { waitUntil: 'networkidle2' });
