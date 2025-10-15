@@ -29,54 +29,51 @@ export function ImageUploadFieldWithUrl({
   isPending = false,
   initialUrl = null,
 }: ImageUploadFieldWithUrlProps) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(initialUrl);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [cacheBuster, setCacheBuster] = useState(Date.now());
 
-  // Function to fetch an image from URL and convert to File
-  const fetchImageAsFile = useCallback(
-    async (url: string) => {
-      try {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        const filename = url.split("/").pop() || "image.jpg";
-        const fileType = blob.type || "image/jpeg";
-        const file = new File([blob], filename, { type: fileType });
+  // Obter o valor atual do form
+  const formValue = form.watch(name);
 
-        // Set the file in the form
-        form.setValue(name, file);
+  // Função para adicionar parâmetro de cache busting na URL
+  const getUrlWithCacheBust = useCallback((url: string | null) => {
+    if (!url) return null;
+    const urlWithoutParams = url.split('?')[0];
+    return `${urlWithoutParams}?v=${cacheBuster}`;
+  }, [cacheBuster]);
 
-        setPreviewUrl(url + `?v=${Date.now()}`);
-      } catch (error) {
-        console.error("Error fetching image:", error);
-        // Keep the URL as preview even if fetch fails
-        setPreviewUrl(url + `?v=${Date.now()}`);
-      }
-    },
-    [form, name]
-  );
-
-  // Set initial form value if URL is provided
+  // Atualizar preview baseado no valor do form
   useEffect(() => {
-    if (initialUrl && !form.getValues(name)) {
-      // If we have an initial URL but no file in the form yet,
-      // we'll fetch the image and convert it to a File
-      fetchImageAsFile(initialUrl);
+    if (formValue instanceof File) {
+      // Se é um File, criar preview da URL local
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(formValue);
+    } else if (typeof formValue === 'string') {
+      // Se é uma string (URL), usar com cache busting
+      setPreviewUrl(getUrlWithCacheBust(formValue));
+    } else if (initialUrl && !formValue) {
+      // Se não há valor no form mas há initialUrl, usar initialUrl
+      setPreviewUrl(getUrlWithCacheBust(initialUrl));
+    } else {
+      // Caso contrário, limpar preview
+      setPreviewUrl(null);
     }
-  }, [initialUrl, form, name, fetchImageAsFile]);
+  }, [formValue, initialUrl, getUrlWithCacheBust]);
+
+  // Atualizar cache buster quando initialUrl mudar
+  useEffect(() => {
+    setCacheBuster(Date.now());
+  }, [initialUrl]);
 
   const handleImageChange = useCallback(
     (file: File | null) => {
       if (file) {
-        // Update form value with the file
         form.setValue(name, file);
-
-        // Create preview URL
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setPreviewUrl(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+        // O useEffect acima vai atualizar o preview automaticamente
       } else {
-        // Clear form value and preview if file is null
         form.setValue(name, null);
         setPreviewUrl(null);
       }
@@ -88,6 +85,7 @@ export function ImageUploadFieldWithUrl({
     (acceptedFiles: File[]) => {
       if (acceptedFiles.length > 0) {
         handleImageChange(acceptedFiles[0]);
+        setCacheBuster(Date.now());
       }
     },
     [handleImageChange]
@@ -104,6 +102,7 @@ export function ImageUploadFieldWithUrl({
     const file = e.target.files?.[0];
     if (file) {
       handleImageChange(file);
+      setCacheBuster(Date.now());
     }
   };
 
@@ -118,11 +117,10 @@ export function ImageUploadFieldWithUrl({
               <div className="flex-grow">
                 <div
                   {...getRootProps()}
-                  className={`border-2 border-dashed rounded-md p-4 text-center cursor-pointer transition-colors ${
-                    isDragActive
+                  className={`border-2 border-dashed rounded-md p-4 text-center cursor-pointer transition-colors ${isDragActive
                       ? "border-primary bg-primary/10"
                       : "border-gray-300 hover:border-primary"
-                  } ${isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+                    } ${isPending ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   <Input
                     type="file"
@@ -133,6 +131,7 @@ export function ImageUploadFieldWithUrl({
                     id={`${name}-upload`}
                     onBlur={field.onBlur}
                     name={field.name}
+                    ref={field.ref}
                   />
                   <label htmlFor={`${name}-upload`} className="cursor-pointer">
                     {previewUrl ? (
@@ -143,6 +142,8 @@ export function ImageUploadFieldWithUrl({
                           src={previewUrl}
                           alt="Preview"
                           className="max-w-full max-h-[300px] object-contain"
+                          key={previewUrl}
+                          unoptimized={true}
                         />
                       </div>
                     ) : (

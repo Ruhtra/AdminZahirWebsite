@@ -57,18 +57,18 @@ export async function CreateProfile({
     data: {
       address: profile.activeAddress
         ? {
-            create: {
-              cep: profile.local.cep,
-              city: profile.local.city,
-              neighborhood: profile.local.neighborhood,
-              number: profile.local.number,
-              street: profile.local.street,
-              uf: profile.local.uf,
-              complement: profile.local.complement,
-              lat: lat_log.lat,
-              lng: lat_log.lng,
-            },
-          }
+          create: {
+            cep: profile.local.cep,
+            city: profile.local.city,
+            neighborhood: profile.local.neighborhood,
+            number: profile.local.number,
+            street: profile.local.street,
+            uf: profile.local.uf,
+            complement: profile.local.complement,
+            lat: lat_log.lat,
+            lng: lat_log.lng,
+          },
+        }
         : undefined,
       createdAt: new Date(),
       name: profile.name,
@@ -171,7 +171,9 @@ export async function UpdateProfile({
     // Verificar se existe imagem no bucket e deletar
 
     if (profileExists.imageName) {
-      const existingImage = `profileImages/${profileExists.imageName}`;
+
+      const existingImage = `${profileExists.imageName}`;
+
       try {
         await supabase.storage.from("profileImages").remove([existingImage]);
       } catch (error) {
@@ -189,31 +191,31 @@ export async function UpdateProfile({
       data: {
         address: profile.activeAddress
           ? {
-              upsert: {
-                create: {
-                  cep: profile.local.cep,
-                  city: profile.local.city,
-                  neighborhood: profile.local.neighborhood,
-                  number: profile.local.number,
-                  street: profile.local.street,
-                  uf: profile.local.uf,
-                  complement: profile.local.complement,
-                  lat: lat_log.lat,
-                  lng: lat_log.lng,
-                },
-                update: {
-                  cep: profile.local.cep,
-                  city: profile.local.city,
-                  neighborhood: profile.local.neighborhood,
-                  number: profile.local.number,
-                  street: profile.local.street,
-                  uf: profile.local.uf,
-                  complement: profile.local.complement,
-                  lat: lat_log.lat,
-                  lng: lat_log.lng,
-                },
+            upsert: {
+              create: {
+                cep: profile.local.cep,
+                city: profile.local.city,
+                neighborhood: profile.local.neighborhood,
+                number: profile.local.number,
+                street: profile.local.street,
+                uf: profile.local.uf,
+                complement: profile.local.complement,
+                lat: lat_log.lat,
+                lng: lat_log.lng,
               },
-            }
+              update: {
+                cep: profile.local.cep,
+                city: profile.local.city,
+                neighborhood: profile.local.neighborhood,
+                number: profile.local.number,
+                street: profile.local.street,
+                uf: profile.local.uf,
+                complement: profile.local.complement,
+                lat: lat_log.lat,
+                lng: lat_log.lng,
+              },
+            },
+          }
           : undefined,
         name: profile.name,
         type: profile.type,

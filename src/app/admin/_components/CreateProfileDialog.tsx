@@ -1,49 +1,37 @@
-"use client";
+"use client"
 
-import { FormDescription } from "@/components/ui/form";
-import { useState, useTransition, useEffect } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, FormProvider } from "react-hook-form";
-import type * as z from "zod";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
-import { createProfileSchema } from "../_actions/profile.schema";
-import { Skeleton } from "@/components/ui/skeleton";
-import type { GetAllProfilesDTO } from "@/app/api/profiles/route";
-import { ImageUploadFieldWithUrl } from "./Image-upload-field-url";
-import { Checkbox } from "@/components/ui/checkbox";
-import { TelephoneFields } from "./TelephoneFields";
-import { queryClient } from "@/lib/queryCLient";
-import { UpdateProfile, CreateProfile } from "../_actions/Profiles";
-import { CategoryManager } from "./categoy-management";
-import { useProfileOptions } from "./ProfilesQueries";
-import { TypeManager } from "./TypeManager";
+import { FormDescription } from "@/components/ui/form"
+import { useState, useTransition, useEffect } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm, FormProvider } from "react-hook-form"
+import type * as z from "zod"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { toast } from "sonner"
+import { useQuery } from "@tanstack/react-query"
+import { Skeleton } from "@/components/ui/skeleton"
+import type { GetAllProfilesDTO } from "@/app/api/profiles/route"
+import { ImageUploadFieldWithUrl } from "./Image-upload-field-url"
+import { Checkbox } from "@/components/ui/checkbox"
+import { TelephoneFields } from "./TelephoneFields"
+import { queryClient } from "@/lib/queryCLient"
+import { CategoryManager } from "./categoy-management"
+import { useProfileOptions } from "./ProfilesQueries"
+import { TypeManager } from "./TypeManager"
+import { createProfileSchema } from "../_actions/profile.schema"
+import { CreateProfile, UpdateProfile } from "../_actions/Profiles"
 
-export type FormValues = z.infer<typeof createProfileSchema>;
+export type FormValues = z.infer<typeof createProfileSchema>
 
 interface CreateProfileDialogProps {
-  idProfile?: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  idProfile?: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
 const estadosBrasileiros = [
@@ -74,21 +62,28 @@ const estadosBrasileiros = [
   "SE",
   "SP",
   "TO",
-];
+]
 
-export function CreateProfileDialog({
-  idProfile,
-  open,
-  onOpenChange,
-}: CreateProfileDialogProps) {
-  const [isPending, startTransition] = useTransition();
+interface CepResponse {
+  cep: string
+  uf: string
+  localidade: string
+  bairro: string
+  logradouro: string
+  pais: string
+}
+
+export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreateProfileDialogProps) {
+  const [isPending, startTransition] = useTransition()
   const { data: userData, isPending: isLoading } = useQuery({
     queryKey: ["profile", idProfile],
     queryFn: () => fetchUser(idProfile),
     enabled: !!idProfile && open,
     refetchOnMount: true,
-  });
-  const [includeAddress, setIncludeAddress] = useState(false);
+  })
+  const [includeAddress, setIncludeAddress] = useState(false)
+  const [addressFieldsLocked, setAddressFieldsLocked] = useState(false)
+  const [isLoadingCep, setIsLoadingCep] = useState(false)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(createProfileSchema),
@@ -98,15 +93,15 @@ export function CreateProfileDialog({
       informations: userData?.informations || "",
       telephones: userData
         ? [
-            ...userData.telephones.whatsapp.map((number) => ({
-              type: "whatsapp" as const,
-              number,
-            })),
-            ...userData.telephones.telephone.map((number) => ({
-              type: "phone" as const,
-              number,
-            })),
-          ]
+          ...userData.telephones.whatsapp.map((number) => ({
+            type: "whatsapp" as const,
+            number,
+          })),
+          ...userData.telephones.telephone.map((number) => ({
+            type: "phone" as const,
+            number,
+          })),
+        ]
         : [],
       activeAddress: !!userData?.local,
       local: {
@@ -127,15 +122,63 @@ export function CreateProfileDialog({
       categories: userData?.category?.categories || [],
       type: userData?.category.type || [],
     },
-  });
-  if (Object.keys(form.formState.errors).length > 0)
-    console.log(form.formState.errors);
+  })
+  if (Object.keys(form.formState.errors).length > 0) console.log(form.formState.errors)
+
+  const fetchAddressFromCep = async (cep: string) => {
+    // Remove non-numeric characters from CEP
+    const cleanCep = cep.replace(/\D/g, "")
+
+    if (cleanCep.length !== 8) {
+      toast.error("CEP deve conter 8 dígitos")
+      return
+    }
+
+    setIsLoadingCep(true)
+
+    try {
+      const response = await fetch(`/api/cep?cep=${cleanCep}`)
+
+      if (response.status === 404) {
+        toast.error("CEP não encontrado")
+        setAddressFieldsLocked(false)
+        return
+      }
+
+      if (!response.ok) {
+        throw new Error("Erro ao buscar CEP")
+      }
+
+      const data: CepResponse = await response.json()
+
+      form.setValue("local.uf", data.uf)
+      form.setValue("local.city", data.localidade)
+      form.setValue("local.neighborhood", data.bairro)
+      form.setValue("local.street", data.logradouro)
+
+      // Lock the address fields after successful lookup
+      setAddressFieldsLocked(true)
+      toast.success("Endereço encontrado!")
+    } catch (error) {
+      console.error("Error fetching CEP:", error)
+      toast.error("Erro ao buscar CEP")
+      setAddressFieldsLocked(false)
+    } finally {
+      setIsLoadingCep(false)
+    }
+  }
+
+  const handleCepBlur = (cep: string) => {
+    if (cep && cep.trim() !== "") {
+      fetchAddressFromCep(cep)
+    }
+  }
 
   useEffect(() => {
     if (userData) {
-      form.setValue("name", userData.name);
-      form.setValue("resume", userData.resume);
-      form.setValue("informations", userData.informations);
+      form.setValue("name", userData.name)
+      form.setValue("resume", userData.resume)
+      form.setValue("informations", userData.informations)
       form.setValue("telephones", [
         ...userData.telephones.whatsapp.map((number) => ({
           type: "whatsapp" as const,
@@ -145,38 +188,33 @@ export function CreateProfileDialog({
           type: "phone" as const,
           number,
         })),
-      ]);
+      ])
 
-      form.setValue("activeAddress", !!userData.local);
-      form.setValue("local.cep", userData.local?.cep || "");
-      form.setValue("local.uf", userData.local?.uf as string);
-      form.setValue("local.city", userData.local?.city || "");
-      form.setValue("local.neighborhood", userData.local?.neighborhood || "");
-      form.setValue("local.street", userData.local?.street || "");
-      form.setValue("local.number", userData.local?.number || "");
-      form.setValue("local.complement", userData.local?.complement || "");
-      form.setValue("movie", userData.movie || "");
-      form.setValue("activePromotion", userData.promotion?.active ?? false);
-      form.setValue("promotion.title", userData?.promotion?.title || "");
-      form.setValue(
-        "promotion.description",
-        userData?.promotion?.description || ""
-      );
-      form.setValue("categories", userData.category?.categories || []);
-      form.setValue("type", userData?.category.type || []);
-      setIncludeAddress(!!userData.local);
+      form.setValue("activeAddress", !!userData.local)
+      form.setValue("local.cep", userData.local?.cep || "")
+      form.setValue("local.uf", userData.local?.uf as string)
+      form.setValue("local.city", userData.local?.city || "")
+      form.setValue("local.neighborhood", userData.local?.neighborhood || "")
+      form.setValue("local.street", userData.local?.street || "")
+      form.setValue("local.number", userData.local?.number || "")
+      form.setValue("local.complement", userData.local?.complement || "")
+      form.setValue("movie", userData.movie || "")
+      form.setValue("activePromotion", userData.promotion?.active ?? false)
+      form.setValue("promotion.title", userData?.promotion?.title || "")
+      form.setValue("promotion.description", userData?.promotion?.description || "")
+      form.setValue("categories", userData.category?.categories || [])
+      form.setValue("type", userData?.category.type || [])
+      setIncludeAddress(!!userData.local)
+      if (userData.local) {
+        setAddressFieldsLocked(true)
+      }
     }
-  }, [userData, form]);
+  }, [userData, form])
 
-  const {
-    categories,
-    types,
-    isLoading: isLoadingOptions,
-    isError,
-  } = useProfileOptions();
+  const { categories, types, isLoading: isLoadingOptions, isError } = useProfileOptions()
 
   if (isError) {
-    return <div>Error loading options. Please try again later.</div>;
+    return <div>Error loading options. Please try again later.</div>
   }
 
   function onSubmit(values: FormValues) {
@@ -186,40 +224,42 @@ export function CreateProfileDialog({
           const data = await UpdateProfile({
             idProfile: idProfile,
             data: values,
-          });
+          })
 
-          if (data.error) toast(data.error);
+          if (data.error) toast(data.error)
           if (data.success) {
             await queryClient.refetchQueries({
               queryKey: ["profiles"],
-            });
+            })
             queryClient.removeQueries({
               queryKey: ["profile", idProfile],
-            });
+            })
 
-            onOpenChange(false);
-            form.reset();
-            toast("Profile atualizado com sucesso");
+            onOpenChange(false)
+            form.reset()
+            toast("Profile atualizado com sucesso")
           }
         } else {
           const data = await CreateProfile({
             data: values,
-          });
-          if (data.error) toast(data.error);
+          })
+          if (data.error) toast(data.error)
           if (data.success) {
-            onOpenChange(false);
-            form.reset();
-            toast("Profile criado com sucesso");
+            onOpenChange(false)
+            form.reset()
+            toast("Profile criado com sucesso")
             // setPreviewUrl(null);
             await queryClient.refetchQueries({
               queryKey: ["profiles"],
-            });
+            })
           }
         }
-      } catch {
-        toast.error("Something went wrong. Please try again.");
+      } catch (err) {
+        console.log(err);
+
+        toast.error("Something went wrong. Please try again.")
       }
-    });
+    })
   }
 
   return (
@@ -306,11 +346,7 @@ export function CreateProfileDialog({
                       <FormItem>
                         <FormLabel>Movie URL</FormLabel>
                         <FormControl>
-                          <Input
-                            type="url"
-                            {...field}
-                            className="bg-background"
-                          />
+                          <Input type="url" {...field} className="bg-background" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -331,8 +367,11 @@ export function CreateProfileDialog({
                           <Checkbox
                             checked={includeAddress}
                             onCheckedChange={(checked) => {
-                              setIncludeAddress(!!checked);
-                              field.onChange(checked);
+                              setIncludeAddress(!!checked)
+                              field.onChange(checked)
+                              if (!checked) {
+                                setAddressFieldsLocked(false)
+                              }
                             }}
                           />
                         </FormControl>
@@ -351,8 +390,24 @@ export function CreateProfileDialog({
                           <FormItem>
                             <FormLabel>CEP</FormLabel>
                             <FormControl>
-                              <Input {...field} className="bg-background" />
+                              <Input
+                                {...field}
+                                className="bg-background"
+                                placeholder="00000-000"
+                                onBlur={(e) => {
+                                  field.onBlur()
+                                  handleCepBlur(e.target.value)
+                                }}
+                                onChange={(e) => {
+                                  field.onChange(e)
+                                  if (addressFieldsLocked) {
+                                    setAddressFieldsLocked(false)
+                                  }
+                                }}
+                                disabled={isLoadingCep}
+                              />
                             </FormControl>
+                            {isLoadingCep && <p className="text-sm text-muted-foreground">Buscando endereço...</p>}
                             <FormMessage />
                           </FormItem>
                         )}
@@ -366,7 +421,8 @@ export function CreateProfileDialog({
                             <FormControl>
                               <select
                                 {...field}
-                                className="w-full p-2 border rounded bg-background"
+                                className="w-full p-2 border rounded bg-background disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={addressFieldsLocked}
                               >
                                 {estadosBrasileiros.map((uf) => (
                                   <option key={uf} value={uf}>
@@ -386,7 +442,7 @@ export function CreateProfileDialog({
                           <FormItem>
                             <FormLabel>City</FormLabel>
                             <FormControl>
-                              <Input {...field} className="bg-background" />
+                              <Input {...field} className="bg-background" disabled={addressFieldsLocked} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -399,7 +455,7 @@ export function CreateProfileDialog({
                           <FormItem>
                             <FormLabel>Neighborhood</FormLabel>
                             <FormControl>
-                              <Input {...field} className="bg-background" />
+                              <Input {...field} className="bg-background" disabled={addressFieldsLocked} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -412,7 +468,7 @@ export function CreateProfileDialog({
                           <FormItem>
                             <FormLabel>Street</FormLabel>
                             <FormControl>
-                              <Input {...field} className="bg-background" />
+                              <Input {...field} className="bg-background" disabled={addressFieldsLocked} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -454,18 +510,11 @@ export function CreateProfileDialog({
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
-                          <FormLabel className="text-base">
-                            Active Promotion
-                          </FormLabel>
-                          <FormDescription>
-                            Enable or disable the promotion for this profile.
-                          </FormDescription>
+                          <FormLabel className="text-base">Active Promotion</FormLabel>
+                          <FormDescription>Enable or disable the promotion for this profile.</FormDescription>
                         </div>
                         <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
                         </FormControl>
                       </FormItem>
                     )}
@@ -513,26 +562,24 @@ export function CreateProfileDialog({
                     ? "Updating Profile"
                     : "Creating Profile"
                   : idProfile
-                  ? "Update Profile"
-                  : "Add Profile"}
+                    ? "Update Profile"
+                    : "Add Profile"}
               </Button>
             </form>
           </FormProvider>
         )}
       </DialogContent>
     </Dialog>
-  );
+  )
 }
 
-async function fetchUser(
-  id: string | undefined
-): Promise<GetAllProfilesDTO | null> {
+async function fetchUser(id: string | undefined): Promise<GetAllProfilesDTO | null> {
   if (id) {
-    const response = await fetch(`/api/profiles/${id}`);
+    const response = await fetch(`/api/profiles/${id}`)
     if (!response.ok) {
-      throw new Error("Failed to fetch profile");
+      throw new Error("Failed to fetch profile")
     }
-    return response.json();
+    return response.json()
   }
-  return null;
+  return null
 }
