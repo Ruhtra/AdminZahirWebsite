@@ -1,4 +1,7 @@
-import puppeteer from 'puppeteer'
+// import puppeteer from 'puppeteer-core'
+
+
+
 
 class Instagram {
     _name = "";
@@ -28,12 +31,30 @@ class Instagram {
     }
 
     async getInstagramFollowers() {
-        const browser = await puppeteer.launch({ headless: true });
+        // let browser = null;
+
+
+        const chromium = (await import("@sparticuz/chromium")).default;
+        let puppeteer: any,
+            launchOptions: any = {
+                headless: true,
+            };
+
+        puppeteer = await import("puppeteer-core");
+        launchOptions = {
+            ...launchOptions,
+            args: chromium.args,
+            executablePath: await chromium.executablePath(),
+        }
+
+
+
+        const browser = await puppeteer.launch(launchOptions);
         const page = await browser.newPage();
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
         await page.goto(`https://www.instagram.com/${this._name}/`);
         await page.waitForSelector('meta[name="description"]');
-        const followers = await page.$eval('meta[name="description"]', (element) => {
+        const followers = await page.$eval('meta[name="description"]', (element: any) => {
             const content = element.getAttribute('content');
 
             return content?.split(' ')[0];
@@ -76,11 +97,27 @@ class Tiktok {
     }
 
     async getTikTokFollowers() {
+
+        const chromium = (await import("@sparticuz/chromium")).default;
+        let puppeteer: any,
+            launchOptions: any = {
+                headless: true,
+            };
+
+        puppeteer = await import("puppeteer-core");
+        launchOptions = {
+            ...launchOptions,
+            args: chromium.args,
+            executablePath: await chromium.executablePath(),
+        }
+
+
+
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
         await page.goto(`https://www.tiktok.com/${this._name}`);
         await page.waitForSelector('strong[data-e2e="followers-count"]');
-        const followers = await page.$eval('strong[data-e2e="followers-count"]', (element) => element.innerText);
+        const followers = await page.$eval('strong[data-e2e="followers-count"]', (element: any) => element.innerText);
         await browser.close();
         return this.converterTikTokFollowers(followers);
     }
@@ -118,6 +155,21 @@ class YouTube {
     }
 
     async getYouTubeFollowers() {
+
+        const chromium = (await import("@sparticuz/chromium")).default;
+        let puppeteer: any,
+            launchOptions: any = {
+                headless: true,
+            };
+
+        puppeteer = await import("puppeteer-core");
+        launchOptions = {
+            ...launchOptions,
+            args: chromium.args,
+            executablePath: await chromium.executablePath(),
+        }
+
+
         const browser = await puppeteer.launch({ headless: true });
         const page = await browser.newPage();
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
