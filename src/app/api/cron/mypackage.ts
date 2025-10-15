@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import puppeteer from 'puppeteer-core'
 
+import puppeteer, { launch } from "puppeteer-core";
 
 
+const isVercel = !!process.env.VERCEL_ENV;
 
 class Instagram {
     _name = "";
@@ -34,15 +36,7 @@ class Instagram {
     async getInstagramFollowers() {
         // let browser = null;
 
-
-        const chromium = (await import("@sparticuz/chromium")).default;
-
-        const puppeteer = await import("puppeteer-core");
-        const launchOptions = {
-            headless: true,
-            args: chromium.args,
-            executablePath: await chromium.executablePath(),
-        }
+        const { puppeteer, launchOptions } = await getOpt()
 
 
         const browser = await puppeteer.launch(launchOptions);
@@ -93,15 +87,7 @@ class Tiktok {
     }
 
     async getTikTokFollowers() {
-
-        const chromium = (await import("@sparticuz/chromium")).default;
-
-        const puppeteer = await import("puppeteer-core");
-        const launchOptions = {
-            headless: true,
-            args: chromium.args,
-            executablePath: await chromium.executablePath(),
-        }
+        const { puppeteer, launchOptions } = await getOpt()
 
 
 
@@ -147,15 +133,7 @@ class YouTube {
     }
 
     async getYouTubeFollowers() {
-
-        const chromium = (await import("@sparticuz/chromium")).default;
-
-        const puppeteer = await import("puppeteer-core");
-        const launchOptions = {
-            headless: true,
-            args: chromium.args,
-            executablePath: await chromium.executablePath(),
-        }
+        const { puppeteer, launchOptions } = await getOpt()
 
 
         const browser = await puppeteer.launch(launchOptions);
@@ -170,10 +148,14 @@ class YouTube {
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const result: any[] = [];
+            console.log('elementos:');
+
             elements.forEach((element) => {
                 const textContent = element?.textContent;
                 const text = textContent ? textContent.trim() : "";
-                if (text.includes("inscritos")) {
+                console.log(text);
+
+                if (text.includes("inscritos") || text.includes("subscribers") || text.includes("subscritores")) {
                     result.push(text);
                 }
             });
@@ -229,3 +211,25 @@ type SocialMediaFollowersOptions = {
     youtube?: string;
     sumTotal?: boolean;
 };
+async function getOpt(): Promise<{ puppeteer: any; launchOptions: any; }> {
+    if (isVercel) {
+        const chromium = (await import("@sparticuz/chromium")).default;
+        return {
+
+            puppeteer: await import("puppeteer-core"),
+            launchOptions: {
+                headless: true,
+                args: chromium.args,
+                executablePath: await chromium.executablePath(),
+            }
+        }
+    } else {
+        return {
+            puppeteer: await import("puppeteer"),
+            launchOptions: {
+                headless: true,
+            }
+        }
+    }
+}
+
