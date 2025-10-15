@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import puppeteer from 'puppeteer-core'
 
-import puppeteer, { launch } from "puppeteer-core";
-
 
 const isVercel = !!process.env.VERCEL_ENV;
 
@@ -79,24 +77,13 @@ class Instagram {
         const followers = await page.evaluate(() => {
             const elements = document.querySelectorAll('.x1lliihq.x1plvlek.xryxfnj.x1n2onr6.xyejjpt.x15dsfln.x193iq5w.xeuugli.x1fj9vlw.x13faqbe.x1vvkbs.x1s928wv.xhkezso.x1gmr53x.x1cpjm7i.x1fgarty.x1943h6x.x1i0vuye.xl565be.xo1l8bm.x1roi4f4.x2b8uid.x10wh9bi.xpm28yp.x8viiok.x1o7cslx');
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const result: any[] = [];
-            console.log('elementos:');
-
             elements.forEach((element) => {
                 const textContent = element?.textContent;
                 const text = textContent ? textContent.trim() : "";
-                console.log(text);
 
                 if (text.includes("seguidores") || text.includes("followers")) {
-                    console.log('texto antes: ' + text);
-                    var tratado = text.split(/\s+/).slice(0, 2).join(' ');
-
-
-                    console.log('texto despois' + tratado);
-
-
-                    result.push(tratado);
+                    result.push(text.split(/\s+/).slice(0, 2).join(' '));
 
                 }
             });
@@ -206,7 +193,6 @@ class YouTube {
         const inscritos = await page.evaluate(() => {
             const elements = document.querySelectorAll('.yt-core-attributed-string.yt-content-metadata-view-model__metadata-text.yt-core-attributed-string--white-space-pre-wrap.yt-core-attributed-string--link-inherit-color:nth-child(1)');
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const result: any[] = [];
             console.log('elementos:');
 
