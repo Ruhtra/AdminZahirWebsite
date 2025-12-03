@@ -39,16 +39,17 @@ export async function GET(
       movie: profile.movie ?? undefined,
       local: profile.address
         ? {
-            cep: profile.address.cep,
-            uf: profile.address.uf,
-            city: profile.address.city,
-            neighborhood: profile.address.neighborhood,
-            street: profile.address.street,
-            number: profile.address.number,
-            lat: profile.address.lat,
-            lng: profile.address.lng,
-            complement: profile.address.complement ?? undefined,
-          }
+          cep: profile.address.cep ?? undefined,
+          uf: profile.address.uf,
+          country: profile.address.country,
+          city: profile.address.city ?? undefined,
+          neighborhood: profile.address.neighborhood ?? undefined,
+          street: profile.address.street ?? undefined,
+          number: profile.address.number ?? undefined,
+          // lat: profile.address.lat,
+          // lng: profile.address.lng,
+          complement: profile.address.complement ?? undefined,
+        }
         : undefined,
       promotion: {
         active: profile.promotionActive,

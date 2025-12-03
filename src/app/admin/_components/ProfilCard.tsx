@@ -11,6 +11,7 @@ import { deleteProfile } from "../_actions/Profiles";
 import { toast } from "sonner";
 import { queryClient } from "@/lib/queryCLient";
 import { useState } from "react";
+import { Country, State } from "country-state-city"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,6 +54,35 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
     }
   };
 
+  const getCountryName = (isoCode?: string) => {
+    if (!isoCode) return null
+    const country = Country.getCountryByCode(isoCode)
+    return country?.name || isoCode
+  }
+
+  const getStateName = (countryCode?: string, stateCode?: string) => {
+    if (!countryCode || !stateCode) return null
+    const state = State.getStateByCodeAndCountry(stateCode, countryCode)
+    return state?.name || stateCode
+  }
+
+  const getLocationString = () => {
+    const country = getCountryName(profile.local?.country)
+    const state = getStateName(profile.local?.country, profile.local?.uf)
+    const city = profile.local?.city
+
+    if (!country) return null
+
+    if (city && state) {
+      return `${country}, ${city}, ${state}`
+    } else if (state) {
+      return `${country}, ${state}`
+    }
+    return country
+  }
+
+  const locationString = getLocationString()
+
   return (
     <>
       <CreateProfileDialog
@@ -77,10 +107,10 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
         </div>
         <CardContent className="p-4">
           <h2 className="text-xl font-semibold mb-2">{profile.name}</h2>
-          {profile.local && (
+          {locationString && (
             <p className="text-sm text-muted-foreground flex items-center mb-2">
               <MapPin className="w-4 h-4 mr-1" />
-              {profile.local.city}, {profile.local.uf}
+              {locationString}
             </p>
           )}
           <div className="flex flex-wrap gap-2 mt-2">

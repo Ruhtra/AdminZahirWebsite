@@ -3,7 +3,6 @@
 import { z } from "zod";
 import { supabase } from "@/lib/supabase";
 import { createProfileSchema } from "./profile.schema";
-import { getLocaleByCep } from "@/lib/locale";
 import { db } from "@/lib/db";
 import cuid from "cuid";
 
@@ -19,15 +18,15 @@ export async function CreateProfile({
   if (!parseProfile.success) return { error: "Invalid data" };
   const profile = parseProfile.data;
 
-  let lat_log;
+  // let lat_log;
 
-  if (profile.activeAddress) {
-    try {
-      lat_log = await getLocaleByCep(profile.local.cep);
-    } catch {
-      return { error: "Não foi possivel obter a localidade especificada!" };
-    }
-  }
+  // if (profile.activeAddress) {
+  //   try {
+  //     lat_log = await getLocaleByCep(profile.local.cep);
+  //   } catch {
+  //     return { error: "Não foi possivel obter a localidade especificada!" };
+  //   }
+  // }
 
   let imgUrl;
   let imageName;
@@ -64,9 +63,10 @@ export async function CreateProfile({
             number: profile.local.number,
             street: profile.local.street,
             uf: profile.local.uf,
+            country: profile.local.country,
             complement: profile.local.complement,
-            lat: lat_log.lat,
-            lng: lat_log.lng,
+            // lat: lat_log.lat,
+            // lng: lat_log.lng,
           },
         }
         : undefined,
@@ -133,14 +133,14 @@ export async function UpdateProfile({
     });
   }
 
-  let lat_log;
-  if (profile.activeAddress) {
-    try {
-      lat_log = await getLocaleByCep(profile.local.cep);
-    } catch {
-      return { error: "Não foi possivel obter a localidade especificada!" };
-    }
-  }
+  // let lat_log;
+  // if (profile.activeAddress) {
+  //   try {
+  //     lat_log = await getLocaleByCep(profile.local.cep);
+  //   } catch {
+  //     return { error: "Não foi possivel obter a localidade especificada!" };
+  //   }
+  // }
 
   let imgUrl: string | undefined;
   let imageName: string | undefined;
@@ -199,9 +199,10 @@ export async function UpdateProfile({
                 number: profile.local.number,
                 street: profile.local.street,
                 uf: profile.local.uf,
+                country: profile.local.country,
                 complement: profile.local.complement,
-                lat: lat_log.lat,
-                lng: lat_log.lng,
+                // lat: lat_log.lat,
+                // lng: lat_log.lng,
               },
               update: {
                 cep: profile.local.cep,
@@ -210,9 +211,10 @@ export async function UpdateProfile({
                 number: profile.local.number,
                 street: profile.local.street,
                 uf: profile.local.uf,
+                country: profile.local.country,
                 complement: profile.local.complement,
-                lat: lat_log.lat,
-                lng: lat_log.lng,
+                // lat: lat_log.lat,
+                // lng: lat_log.lng,
               },
             },
           }

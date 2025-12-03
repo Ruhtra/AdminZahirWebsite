@@ -18,14 +18,15 @@ export interface GetAllHomePageDTO {
     };
     createdAt: Date;
     local?: {
-      cep: string;
+      cep?: string;
       uf: string;
-      city: string;
-      neighborhood: string;
-      street: string;
-      number: string;
-      lat: number;
-      lng: number;
+      country: string;
+      city?: string;
+      neighborhood?: string;
+      street?: string;
+      number?: string;
+      // lat: number;
+      // lng: number;
       complement?: string;
     };
   };
@@ -56,23 +57,24 @@ export async function GET() {
           name: e.profile.name,
           promotion: e.profile.promotion
             ? {
-                active: e.profile.promotionActive,
-                description: e.profile.promotion.description ?? undefined,
-                title: e.profile.promotion.title ?? undefined,
-              }
+              active: e.profile.promotionActive,
+              description: e.profile.promotion.description ?? undefined,
+              title: e.profile.promotion.title ?? undefined,
+            }
             : undefined,
           local: e.profile.address
             ? {
-                cep: e.profile.address.cep,
-                uf: e.profile.address.uf,
-                city: e.profile.address.city,
-                neighborhood: e.profile.address.neighborhood,
-                street: e.profile.address.street,
-                number: e.profile.address.number,
-                lat: e.profile.address.lat,
-                lng: e.profile.address.lng,
-                complement: e.profile.address.complement ?? undefined,
-              }
+              cep: e.profile.address.cep ?? undefined,
+              uf: e.profile.address.uf,
+              country: e.profile.address.uf,
+              city: e.profile.address.city ?? undefined,
+              neighborhood: e.profile.address.neighborhood ?? undefined,
+              street: e.profile.address.street ?? undefined,
+              number: e.profile.address.number ?? undefined,
+              // lat: e.profile.address.lat,
+              // lng: e.profile.address.lng,
+              complement: e.profile.address.complement ?? undefined,
+            }
             : undefined,
         },
       };

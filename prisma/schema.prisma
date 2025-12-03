@@ -40,16 +40,17 @@ model Profiles {
 
 model Address {
   id           String  @id @default(cuid())
-  cep          String
+  cep          String?
   uf           String
-  city         String
-  neighborhood String
-  street       String
-  number       String
+  country      String
+  city         String?
+  neighborhood String?
+  street       String?
+  number       String?
   complement   String?
 
-  lat Float
-  lng Float
+  // lat Float?
+  // lng Float?
 
   Profiles   Profiles @relation(fields: [profilesId], references: [id], onDelete: Cascade)
   profilesId String   @unique

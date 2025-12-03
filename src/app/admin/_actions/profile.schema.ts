@@ -1,53 +1,41 @@
 import { z } from "zod";
 
 const localSchema = z.object({
-  cep: z.string().length(8, "CEP deve ter 8 caracteres"),
+  cep: z
+    .string()
+    .optional()
+    .refine(
+      (value) =>
+        value === undefined ||
+        value.length === 0 ||
+        value.length === 8,
+      {
+        message: "CEP deve ter 8 caracteres ou ser deixado em branco",
+      }
+    ),
+
   uf: z.string().min(1),
-  //   uf: z.enum([
-  //     "AC",
-  //     "AL",
-  //     "AM",
-  //     "AP",
-  //     "BA",
-  //     "CE",
-  //     "DF",
-  //     "ES",
-  //     "GO",
-  //     "MA",
-  //     "MG",
-  //     "MS",
-  //     "MT",
-  //     "PA",
-  //     "PB",
-  //     "PE",
-  //     "PI",
-  //     "PR",
-  //     "RJ",
-  //     "RN",
-  //     "RO",
-  //     "RR",
-  //     "RS",
-  //     "SC",
-  //     "SE",
-  //     "SP",
-  //     "TO",
-  //   ]),
+  country: z.string().min(1),
   city: z
     .string()
-    .min(1, "Cidade é obrigatória")
-    .max(100, "Cidade deve ter no máximo 100 caracteres"),
+    // .min(1, "Cidade é obrigatória")
+    .max(100, "Cidade deve ter no máximo 100 caracteres")
+    .optional(),
   neighborhood: z
     .string()
-    .min(1, "Bairro é obrigatório")
-    .max(100, "Bairro deve ter no máximo 100 caracteres"),
+    // .min(1, "Bairro é obrigatório")
+    .max(100, "Bairro deve ter no máximo 100 caracteres")
+    .optional(),
   street: z
     .string()
-    .min(1, "Rua é obrigatória")
-    .max(100, "Rua deve ter no máximo 100 caracteres"),
+    // .min(1, "Rua é obrigatória")
+    .max(100, "Rua deve ter no máximo 100 caracteres")
+    .optional(),
   number: z
     .string()
-    .min(1, "Número é obrigatório")
-    .max(10, "Número deve ter no máximo 10 caracteres"),
+    // .min(1, "Número é obrigatório")
+    .max(10, "Número deve ter no máximo 10 caracteres")
+    .optional(),
   complement: z
     .string()
     .max(250, "Complemento deve ter no máximo 250 caracteres")

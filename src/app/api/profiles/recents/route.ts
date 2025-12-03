@@ -24,14 +24,15 @@ export interface GetAllRecentsDTO {
   };
   createdAt: Date;
   local?: {
-    cep: string;
+    cep?: string;
     uf: string;
-    city: string;
-    neighborhood: string;
-    street: string;
-    number: string;
-    lat: number;
-    lng: number;
+    country: string;
+    city?: string;
+    neighborhood?: string;
+    street?: string;
+    number?: string;
+    // lat: number;
+    // lng: number;
     complement?: string;
   };
   picture?: string;
@@ -72,16 +73,17 @@ export async function GET() {
         movie: data.movie ?? undefined,
         local: data.address
           ? {
-              cep: data.address.cep,
-              uf: data.address.uf,
-              city: data.address.city,
-              neighborhood: data.address.neighborhood,
-              street: data.address.street,
-              number: data.address.number,
-              lat: data.address.lat,
-              lng: data.address.lng,
-              complement: data.address.complement ?? undefined,
-            }
+            cep: data.address.cep ?? undefined,
+            uf: data.address.uf,
+            country: data.address.country,
+            city: data.address.city ?? undefined,
+            neighborhood: data.address.neighborhood ?? undefined,
+            street: data.address.street ?? undefined,
+            number: data.address.number ?? undefined,
+            // lat: data.address.lat,
+            // lng: data.address.lng,
+            complement: data.address.complement ?? undefined,
+          }
           : undefined,
         promotion: {
           active: data.promotionActive,

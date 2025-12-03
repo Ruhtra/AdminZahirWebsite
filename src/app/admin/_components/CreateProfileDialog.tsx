@@ -1,7 +1,7 @@
 "use client"
 
 import { FormDescription } from "@/components/ui/form"
-import { useState, useTransition, useEffect } from "react"
+import { useState, useTransition, useEffect, useMemo } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, FormProvider } from "react-hook-form"
 import type * as z from "zod"
@@ -15,7 +15,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import { useQuery } from "@tanstack/react-query"
 import { Skeleton } from "@/components/ui/skeleton"
-import type { GetAllProfilesDTO } from "@/app/api/profiles/route"
 import { ImageUploadFieldWithUrl } from "./Image-upload-field-url"
 import { Checkbox } from "@/components/ui/checkbox"
 import { TelephoneFields } from "./TelephoneFields"
@@ -25,6 +24,40 @@ import { useProfileOptions } from "./ProfilesQueries"
 import { TypeManager } from "./TypeManager"
 import { createProfileSchema } from "../_actions/profile.schema"
 import { CreateProfile, UpdateProfile } from "../_actions/Profiles"
+import { Country, State } from "country-state-city"
+
+export interface GetAllProfilesDTO {
+  _id: string
+  name: string
+  resume?: string
+  informations?: string
+  movie?: string
+  category: {
+    type: string[]
+    categories: string[]
+  }
+  promotion?: {
+    active: boolean
+    title?: string
+    description?: string
+  }
+  telephones: {
+    whatsapp: string[]
+    telephone: string[]
+  }
+  createdAt: Date
+  local?: {
+    cep?: string
+    country?: string
+    uf?: string
+    city?: string
+    neighborhood?: string
+    street?: string
+    number?: string
+    complement?: string
+  }
+  picture?: string
+}
 
 export type FormValues = z.infer<typeof createProfileSchema>
 
@@ -34,43 +67,11 @@ interface CreateProfileDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-const estadosBrasileiros = [
-  "AC",
-  "AL",
-  "AM",
-  "AP",
-  "BA",
-  "CE",
-  "DF",
-  "ES",
-  "GO",
-  "MA",
-  "MG",
-  "MS",
-  "MT",
-  "PA",
-  "PB",
-  "PE",
-  "PI",
-  "PR",
-  "RJ",
-  "RN",
-  "RO",
-  "RR",
-  "RS",
-  "SC",
-  "SE",
-  "SP",
-  "TO",
-]
-
-interface CepResponse {
-  cep: string
-  uf: string
-  localidade: string
-  bairro: string
-  logradouro: string
-  pais: string
+async function fetchUser(idProfile?: string): Promise<GetAllProfilesDTO | undefined> {
+  if (!idProfile) return undefined
+  const response = await fetch(`/api/profiles/${idProfile}`)
+  if (!response.ok) throw new Error("Failed to fetch user")
+  return response.json()
 }
 
 export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreateProfileDialogProps) {
@@ -82,8 +83,7 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
     refetchOnMount: true,
   })
   const [includeAddress, setIncludeAddress] = useState(false)
-  const [addressFieldsLocked, setAddressFieldsLocked] = useState(false)
-  const [isLoadingCep, setIsLoadingCep] = useState(false)
+  const [selectedCountry, setSelectedCountry] = useState("BR")
 
   const form = useForm<FormValues>({
     resolver: zodResolver(createProfileSchema),
@@ -106,7 +106,8 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
       activeAddress: !!userData?.local,
       local: {
         cep: userData?.local?.cep || "",
-        uf: (userData?.local?.uf as string) || "SP",
+        country: userData?.local?.country || "BR",
+        uf: (userData?.local?.uf as string) || "",
         city: userData?.local?.city || "",
         neighborhood: userData?.local?.neighborhood || "",
         street: userData?.local?.street || "",
@@ -123,56 +124,19 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
       type: userData?.category.type || [],
     },
   })
+
   if (Object.keys(form.formState.errors).length > 0) console.log(form.formState.errors)
 
-  const fetchAddressFromCep = async (cep: string) => {
-    // Remove non-numeric characters from CEP
-    const cleanCep = cep.replace(/\D/g, "")
+  const countries = useMemo(() => {
+    const allCountries = Country.getAllCountries()
+    return allCountries.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
+  }, [])
 
-    if (cleanCep.length !== 8) {
-      toast.error("CEP deve conter 8 dígitos")
-      return
-    }
-
-    setIsLoadingCep(true)
-
-    try {
-      const response = await fetch(`/api/cep?cep=${cleanCep}`)
-
-      if (response.status === 404) {
-        toast.error("CEP não encontrado")
-        setAddressFieldsLocked(false)
-        return
-      }
-
-      if (!response.ok) {
-        throw new Error("Erro ao buscar CEP")
-      }
-
-      const data: CepResponse = await response.json()
-
-      form.setValue("local.uf", data.uf)
-      form.setValue("local.city", data.localidade)
-      form.setValue("local.neighborhood", data.bairro)
-      form.setValue("local.street", data.logradouro)
-
-      // Lock the address fields after successful lookup
-      setAddressFieldsLocked(true)
-      toast.success("Endereço encontrado!")
-    } catch (error) {
-      console.error("Error fetching CEP:", error)
-      toast.error("Erro ao buscar CEP")
-      setAddressFieldsLocked(false)
-    } finally {
-      setIsLoadingCep(false)
-    }
-  }
-
-  const handleCepBlur = (cep: string) => {
-    if (cep && cep.trim() !== "") {
-      fetchAddressFromCep(cep)
-    }
-  }
+  const states = useMemo(() => {
+    if (!selectedCountry) return []
+    const countryStates = State.getStatesOfCountry(selectedCountry)
+    return countryStates.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
+  }, [selectedCountry])
 
   useEffect(() => {
     if (userData) {
@@ -192,6 +156,7 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
 
       form.setValue("activeAddress", !!userData.local)
       form.setValue("local.cep", userData.local?.cep || "")
+      form.setValue("local.country", userData.local?.country || "BR")
       form.setValue("local.uf", userData.local?.uf as string)
       form.setValue("local.city", userData.local?.city || "")
       form.setValue("local.neighborhood", userData.local?.neighborhood || "")
@@ -205,8 +170,8 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
       form.setValue("categories", userData.category?.categories || [])
       form.setValue("type", userData?.category.type || [])
       setIncludeAddress(!!userData.local)
-      if (userData.local) {
-        setAddressFieldsLocked(true)
+      if (userData.local?.country) {
+        setSelectedCountry(userData.local.country)
       }
     }
   }, [userData, form])
@@ -248,15 +213,13 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
             onOpenChange(false)
             form.reset()
             toast("Profile criado com sucesso")
-            // setPreviewUrl(null);
             await queryClient.refetchQueries({
               queryKey: ["profiles"],
             })
           }
         }
       } catch (err) {
-        console.log(err);
-
+        console.log(err)
         toast.error("Something went wrong. Please try again.")
       }
     })
@@ -354,10 +317,8 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
                   />
                 </TabsContent>
                 <TabsContent value="contact" className="space-y-4">
-                  {/* Telephones */}
                   <TelephoneFields />
 
-                  {/* Address Toggle Button */}
                   <FormField
                     control={form.control}
                     name="activeAddress"
@@ -369,9 +330,6 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
                             onCheckedChange={(checked) => {
                               setIncludeAddress(!!checked)
                               field.onChange(checked)
-                              if (!checked) {
-                                setAddressFieldsLocked(false)
-                              }
                             }}
                           />
                         </FormControl>
@@ -380,53 +338,27 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
                     )}
                   />
 
-                  {/* Address Fields */}
                   {includeAddress && (
                     <>
                       <FormField
                         control={form.control}
-                        name="local.cep"
+                        name="local.country"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>CEP</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                className="bg-background"
-                                placeholder="00000-000"
-                                onBlur={(e) => {
-                                  field.onBlur()
-                                  handleCepBlur(e.target.value)
-                                }}
-                                onChange={(e) => {
-                                  field.onChange(e)
-                                  if (addressFieldsLocked) {
-                                    setAddressFieldsLocked(false)
-                                  }
-                                }}
-                                disabled={isLoadingCep}
-                              />
-                            </FormControl>
-                            {isLoadingCep && <p className="text-sm text-muted-foreground">Buscando endereço...</p>}
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="local.uf"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>UF</FormLabel>
+                            <FormLabel>País *</FormLabel>
                             <FormControl>
                               <select
                                 {...field}
-                                className="w-full p-2 border rounded bg-background disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled={addressFieldsLocked}
+                                className="w-full p-2 border rounded bg-background"
+                                onChange={(e) => {
+                                  field.onChange(e)
+                                  setSelectedCountry(e.target.value)
+                                  form.setValue("local.uf", "")
+                                }}
                               >
-                                {estadosBrasileiros.map((uf) => (
-                                  <option key={uf} value={uf}>
-                                    {uf}
+                                {countries.map((country) => (
+                                  <option key={country.isoCode} value={country.isoCode}>
+                                    {country.name}
                                   </option>
                                 ))}
                               </select>
@@ -437,12 +369,45 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
                       />
                       <FormField
                         control={form.control}
+                        name="local.uf"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Estado/UF *</FormLabel>
+                            <FormControl>
+                              <select {...field} className="w-full p-2 border rounded bg-background">
+                                <option value="">Selecione o estado</option>
+                                {states.map((state) => (
+                                  <option key={state.isoCode} value={state.isoCode}>
+                                    {state.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="local.cep"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>CEP</FormLabel>
+                            <FormControl>
+                              <Input {...field} className="bg-background" placeholder="00000-000" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
                         name="local.city"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>City</FormLabel>
+                            <FormLabel>Cidade</FormLabel>
                             <FormControl>
-                              <Input {...field} className="bg-background" disabled={addressFieldsLocked} />
+                              <Input {...field} className="bg-background" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -453,9 +418,9 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
                         name="local.neighborhood"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Neighborhood</FormLabel>
+                            <FormLabel>Bairro</FormLabel>
                             <FormControl>
-                              <Input {...field} className="bg-background" disabled={addressFieldsLocked} />
+                              <Input {...field} className="bg-background" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -466,9 +431,9 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
                         name="local.street"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Street</FormLabel>
+                            <FormLabel>Rua</FormLabel>
                             <FormControl>
-                              <Input {...field} className="bg-background" disabled={addressFieldsLocked} />
+                              <Input {...field} className="bg-background" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -479,7 +444,7 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
                         name="local.number"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Number</FormLabel>
+                            <FormLabel>Número</FormLabel>
                             <FormControl>
                               <Input {...field} className="bg-background" />
                             </FormControl>
@@ -492,7 +457,7 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
                         name="local.complement"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Complement</FormLabel>
+                            <FormLabel>Complemento</FormLabel>
                             <FormControl>
                               <Input {...field} className="bg-background" />
                             </FormControl>
@@ -552,34 +517,18 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
                 </TabsContent>
               </Tabs>
 
-              <Button
-                disabled={isPending}
-                type="submit"
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                {isPending
-                  ? idProfile
-                    ? "Updating Profile"
-                    : "Creating Profile"
-                  : idProfile
-                    ? "Update Profile"
-                    : "Add Profile"}
-              </Button>
+              <div className="flex justify-end gap-4 pt-4">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? "Saving..." : idProfile ? "Update Profile" : "Create Profile"}
+                </Button>
+              </div>
             </form>
           </FormProvider>
         )}
       </DialogContent>
     </Dialog>
   )
-}
-
-async function fetchUser(id: string | undefined): Promise<GetAllProfilesDTO | null> {
-  if (id) {
-    const response = await fetch(`/api/profiles/${id}`)
-    if (!response.ok) {
-      throw new Error("Failed to fetch profile")
-    }
-    return response.json()
-  }
-  return null
 }
