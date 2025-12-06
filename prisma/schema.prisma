@@ -41,7 +41,7 @@ model Profiles {
 model Address {
   id           String  @id @default(cuid())
   cep          String?
-  uf           String
+  uf           String?
   country      String
   city         String?
   neighborhood String?

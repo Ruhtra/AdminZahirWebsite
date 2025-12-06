@@ -6,15 +6,13 @@ const localSchema = z.object({
     .optional()
     .refine(
       (value) =>
-        value === undefined ||
-        value.length === 0 ||
-        value.length === 8,
+        value === undefined || value.length === 0 || value.length === 8,
       {
         message: "CEP deve ter 8 caracteres ou ser deixado em branco",
       }
     ),
 
-  uf: z.string().min(1),
+  uf: z.string().min(1).optional(),
   country: z.string().min(1),
   city: z
     .string()

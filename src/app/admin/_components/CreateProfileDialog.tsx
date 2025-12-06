@@ -82,7 +82,15 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
     enabled: !!idProfile && open,
     refetchOnMount: true,
   })
-  const [includeAddress, setIncludeAddress] = useState(false)
+  const [includeAddress, setIncludeAddress] = useState(() => {
+    // Se estiver editando e houver dados, usa o valor do userData
+    if (idProfile && userData) {
+      return !!userData.local
+    }
+    // Para novos perfis, usa true como padrão
+    return true
+  })
+
   const [selectedCountry, setSelectedCountry] = useState("BR")
 
   const form = useForm<FormValues>({
@@ -103,7 +111,7 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
           })),
         ]
         : [],
-      activeAddress: !!userData?.local,
+      activeAddress: idProfile && userData ? !!userData.local : true,
       local: {
         cep: userData?.local?.cep || "",
         country: userData?.local?.country || "BR",
