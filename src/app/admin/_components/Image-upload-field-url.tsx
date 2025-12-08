@@ -19,15 +19,13 @@ interface ImageUploadFieldWithUrlProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form: UseFormReturn<any>;
   name: string;
-  isPending?: boolean;
-  initialUrl?: string | null;
+  isPending?: boolean; 
 }
 
 export function ImageUploadFieldWithUrl({
   form,
   name,
   isPending = false,
-  initialUrl = null,
 }: ImageUploadFieldWithUrlProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [cacheBuster, setCacheBuster] = useState(Date.now());
@@ -51,22 +49,12 @@ export function ImageUploadFieldWithUrl({
         setPreviewUrl(reader.result as string);
       };
       reader.readAsDataURL(formValue);
-    } else if (typeof formValue === 'string') {
-      // Se é uma string (URL), usar com cache busting
-      setPreviewUrl(getUrlWithCacheBust(formValue));
-    } else if (initialUrl && !formValue) {
-      // Se não há valor no form mas há initialUrl, usar initialUrl
-      setPreviewUrl(getUrlWithCacheBust(initialUrl));
     } else {
       // Caso contrário, limpar preview
+      console.log('>>>>Limpando preview');
       setPreviewUrl(null);
     }
-  }, [formValue, initialUrl, getUrlWithCacheBust]);
-
-  // Atualizar cache buster quando initialUrl mudar
-  useEffect(() => {
-    setCacheBuster(Date.now());
-  }, [initialUrl]);
+  }, [formValue, getUrlWithCacheBust]);
 
   const handleImageChange = useCallback(
     (file: File | null) => {

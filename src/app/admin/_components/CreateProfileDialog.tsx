@@ -65,13 +65,30 @@ interface CreateProfileDialogProps {
   idProfile?: string
   open: boolean
   onOpenChange: (open: boolean) => void
+
 }
+// eslint-disable-next-line no-var
+var imageFileDownloaded: File | null = null
 
 async function fetchUser(idProfile?: string): Promise<GetAllProfilesDTO | undefined> {
   if (!idProfile) return undefined
   const response = await fetch(`/api/profiles/${idProfile}`)
   if (!response.ok) throw new Error("Failed to fetch user")
-  return response.json()
+    
+    const responseData: GetAllProfilesDTO | undefined = await response.json();
+      if (responseData?.picture) {
+    
+        try {
+          const res = await fetch(responseData?.picture || "")
+          const blob = await res.blob()
+          const file = new File([blob], 'image.jpg', { type: blob.type });
+          imageFileDownloaded =  file
+
+        } catch (error) {
+          console.error("!!!! Error fetching image:", error);
+        }    
+      }
+  return responseData
 }
 
 export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreateProfileDialogProps) {
@@ -174,6 +191,11 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
       form.setValue("movie", userData.movie || "")
       form.setValue("activePromotion", userData.promotion?.active ?? false)
       form.setValue("promotion.title", userData?.promotion?.title || "")
+
+      if (imageFileDownloaded != null) {
+        form.setValue("picture", imageFileDownloaded, { shouldValidate: true })
+      }
+
       form.setValue("promotion.description", userData?.promotion?.description || "")
       form.setValue("categories", userData.category?.categories || [])
       form.setValue("type", userData?.category.type || [])
@@ -266,7 +288,7 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
                   <ImageUploadFieldWithUrl
                     form={form}
                     name="picture"
-                    initialUrl={userData?.picture}
+                    // initialUrl={userData?.picture}
                     isPending={isPending}
                   />
                 </TabsContent>
