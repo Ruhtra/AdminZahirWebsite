@@ -40,7 +40,7 @@ export async function GET(
       local: profile.address
         ? {
           cep: profile.address.cep ?? undefined,
-          uf: profile.address.uf,
+          uf: profile.address.uf ?? undefined,
           country: profile.address.country,
           city: profile.address.city ?? undefined,
           neighborhood: profile.address.neighborhood ?? undefined,

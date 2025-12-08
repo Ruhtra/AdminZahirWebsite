@@ -19,7 +19,7 @@ export interface GetAllHomePageDTO {
     createdAt: Date;
     local?: {
       cep?: string;
-      uf: string;
+      uf?: string;
       country: string;
       city?: string;
       neighborhood?: string;
@@ -65,8 +65,8 @@ export async function GET() {
           local: e.profile.address
             ? {
               cep: e.profile.address.cep ?? undefined,
-              uf: e.profile.address.uf,
-              country: e.profile.address.uf,
+              uf: e.profile.address.uf ?? undefined,
+              country: e.profile.address.country,
               city: e.profile.address.city ?? undefined,
               neighborhood: e.profile.address.neighborhood ?? undefined,
               street: e.profile.address.street ?? undefined,

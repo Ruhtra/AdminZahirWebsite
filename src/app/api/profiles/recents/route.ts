@@ -25,7 +25,7 @@ export interface GetAllRecentsDTO {
   createdAt: Date;
   local?: {
     cep?: string;
-    uf: string;
+    uf?: string;
     country: string;
     city?: string;
     neighborhood?: string;
@@ -74,7 +74,7 @@ export async function GET() {
         local: data.address
           ? {
             cep: data.address.cep ?? undefined,
-            uf: data.address.uf,
+            uf: data.address.uf ?? undefined,
             country: data.address.country,
             city: data.address.city ?? undefined,
             neighborhood: data.address.neighborhood ?? undefined,

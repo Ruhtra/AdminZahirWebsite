@@ -12,7 +12,7 @@ const localSchema = z.object({
       }
     ),
 
-  uf: z.string().min(1).optional(),
+  uf: z.string().optional(),
   country: z.string().min(1),
   city: z
     .string()
