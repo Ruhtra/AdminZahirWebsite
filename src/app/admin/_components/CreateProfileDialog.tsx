@@ -402,7 +402,7 @@ export function CreateProfileDialog({ idProfile, open, onOpenChange }: CreatePro
                         name="local.uf"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Estado/UF *</FormLabel>
+                            <FormLabel>Estado/UF</FormLabel>
                             <FormControl>
                               <select {...field} className="w-full p-2 border rounded bg-background">
                                 <option value="">Selecione o estado</option>

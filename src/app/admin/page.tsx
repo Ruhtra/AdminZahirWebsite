@@ -152,10 +152,14 @@ export default function AdminPage() {
     <>
       <CreateProfileDialog onOpenChange={setIsCreateOpen} open={isCreateOpen} />
       <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold mb-4 md:mb-0">Profiles</h1>
-          <div></div>
-          <Button onClick={() => setIsCreateOpen(true)}>Create New Profile</Button>
+        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+          <h1 className="text-3xl font-bold">Profiles</h1>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => window.location.href = '/admin/homepage'}>
+              Gerenciar Homepage
+            </Button>
+            <Button onClick={() => setIsCreateOpen(true)}>Create New Profile</Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">

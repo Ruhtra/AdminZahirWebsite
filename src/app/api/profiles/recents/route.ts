@@ -41,9 +41,10 @@ export async function GET() {
   try {
     const profiles = await db.profiles.findMany({
       where: {
-        movie: {
-          not: null,
-        },
+        AND: [
+          { movie: { not: null } },
+          { movie: { not: "" } }
+        ]
       },
       include: {
         address: true,

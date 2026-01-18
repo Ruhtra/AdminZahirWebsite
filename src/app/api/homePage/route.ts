@@ -11,6 +11,7 @@ export interface GetAllHomePageDTO {
     category: {
       type: string[];
     };
+    picture?: string;
     promotion?: {
       active: boolean;
       title?: string;
@@ -43,16 +44,20 @@ export async function GET() {
           },
         },
       },
+      orderBy: {
+        order: 'asc',
+      },
     });
 
     const response: GetAllHomePageDTO[] = homePage.map((e) => {
       return {
         order: e.order,
         profile: {
-          _id: e.id,
+          _id: e.profileId,
           category: {
             type: e.profile.type,
           },
+          picture: e.profile.imageUrl ?? undefined,
           createdAt: e.profile.createdAt,
           name: e.profile.name,
           promotion: e.profile.promotion
@@ -82,9 +87,51 @@ export async function GET() {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Failed to fetch texts:", error);
+    console.error("Failed to fetch homepage:", error);
     return NextResponse.json(
-      { error: "Failed to fetch texts" },
+      { error: "Failed to fetch homepage" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    
+    // Validar payload
+    if (!Array.isArray(body)) {
+      return NextResponse.json(
+        { error: "Invalid payload: expected array" },
+        { status: 400 }
+      );
+    }
+
+    if (body.length > 10) {
+      return NextResponse.json(
+        { error: "Maximum 10 profiles allowed" },
+        { status: 400 }
+      );
+    }
+
+    // Deletar todos os registros existentes
+    await db.homePage.deleteMany({});
+
+    // Criar novos registros
+    if (body.length > 0) {
+      await db.homePage.createMany({
+        data: body.map((item: { profileId: string; order: number }) => ({
+          profileId: item.profileId,
+          order: item.order,
+        })),
+      });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Failed to update homepage:", error);
+    return NextResponse.json(
+      { error: "Failed to update homepage" },
       { status: 500 }
     );
   }
