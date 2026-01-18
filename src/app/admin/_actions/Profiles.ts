@@ -170,17 +170,17 @@ export async function UpdateProfile({
   } else {
     // Verificar se existe imagem no bucket e deletar
 
-    if (profileExists.imageName) {
+    // if (profileExists.imageName) {
 
-      const existingImage = `${profileExists.imageName}`;
+    //   const existingImage = `${profileExists.imageName}`;
 
-      try {
-        await supabase.storage.from("profileImages").remove([existingImage]);
-      } catch (error) {
-        console.error("Erro ao deletar imagem existente:", error);
-        return { error: "Erro ao deletar imagem existente" };
-      }
-    }
+    //   try {
+    //     await supabase.storage.from("profileImages").remove([existingImage]);
+    //   } catch (error) {
+    //     console.error("Erro ao deletar imagem existente:", error);
+    //     return { error: "Erro ao deletar imagem existente" };
+    //   }
+    // }
   }
 
   try {
@@ -246,8 +246,8 @@ export async function UpdateProfile({
           .filter((e) => e.type == "whatsapp")
           .map((e) => e.number),
 
-        imageName: imageName ? imageName : null,
-        imageUrl: imgUrl ? imgUrl : null,
+        imageName: imageName ? imageName : undefined,
+        imageUrl: imgUrl ? imgUrl : undefined,
       },
     });
   } catch (error) {
