@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import type { GetAllProfilesDTO } from "../api/profiles/route"
 import { CreateProfileDialog } from "./_components/CreateProfileDialog"
 import ProfileCard from "./_components/ProfilCard"
@@ -52,6 +52,10 @@ export default function AdminPage() {
         name: string
       }>
   }, [profiles])
+  
+  useEffect(() => {
+    setStateFilter("all")
+  }, [countryFilter])
 
   const uniqueStates = useMemo(() => {
     if (!profiles) return []
@@ -61,21 +65,32 @@ export default function AdminPage() {
         ? profiles
         : profiles.filter((profile) => profile.local?.country === countryFilter)
 
-    const stateCodes = Array.from(
-      new Set(
-        filteredByCountry
-          .map((profile) => ({
-            country: profile.local?.country,
-            state: profile.local?.uf,
-          }))
-          .filter((loc) => loc.country && loc.state),
-      ),
-    )
+    // Criar um Map usando uma chave composta (país + estado)
+    const stateMap = new Map()
 
-    return stateCodes
+    filteredByCountry.forEach((profile) => {
+      const country = profile.local?.country
+      const state = profile.local?.uf
+
+      if (country && state) {
+        const key = `${country}-${state}`
+        if (!stateMap.has(key)) {
+          stateMap.set(key, { country, state })
+        }
+      }
+    })
+
+    
+
+    // Converter Map para array e processar os estados
+    return Array.from(stateMap.values())
       .map(({ country, state }) => {
-        const stateData = State.getStateByCodeAndCountry(state!, country!)
-        return stateData ? { code: state!, name: stateData.name, country: country! } : null
+        const stateData = State.getStateByCodeAndCountry(state, country)
+        return stateData ? {
+          code: state,
+          name: stateData.name,
+          country: country
+        } : null
       })
       .filter(Boolean)
       .sort((a, b) => a!.name.localeCompare(b!.name, "pt-BR")) as Array<{
