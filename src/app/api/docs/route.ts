@@ -143,6 +143,69 @@ const config: any = {
               }
             }
           }
+        },
+        '/api/promotions': {
+          get: {
+            summary: 'Lista promoções em destaque',
+            description: 'Retorna a lista de promoções ativas em destaque. **STUB** — Retorna lista vazia enquanto a tabela `PromotionHighlight` não for implementada no banco.',
+            tags: ['Promotions'],
+            responses: {
+              '200': {
+                description: 'Lista de promoções (vazia quando sem dados no banco)',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          id: { type: 'string' },
+                          title: { type: 'string' },
+                          description: { type: 'string', nullable: true },
+                          imageUrl: { type: 'string', nullable: true },
+                          discountPercentage: { type: 'number', nullable: true },
+                          validUntil: { type: 'string', format: 'date-time', nullable: true },
+                          active: { type: 'boolean' },
+                          createdAt: { type: 'string', format: 'date-time' },
+                          profile: {
+                            type: 'object',
+                            properties: {
+                              id: { type: 'string' },
+                              name: { type: 'string' },
+                              imageUrl: { type: 'string', nullable: true },
+                              type: { type: 'array', items: { type: 'string' } },
+                              local: {
+                                type: 'object',
+                                nullable: true,
+                                properties: {
+                                  city: { type: 'string', nullable: true },
+                                  uf: { type: 'string', nullable: true },
+                                  country: { type: 'string' }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              '500': {
+                description: 'Falha interna do servidor',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        error: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       },
     },

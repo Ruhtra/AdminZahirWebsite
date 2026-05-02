@@ -36,7 +36,7 @@ export async function GET(
       },
       informations: profile.informations ?? undefined,
       resume: profile.resume ?? undefined,
-      movie: profile.movie ?? undefined,
+      movie: profile.movie ? profile.movie.trim().replace(/\/embed\/?(?:\?.*)?$/i, "") : undefined,
       local: profile.address
         ? {
           cep: profile.address.cep ?? undefined,

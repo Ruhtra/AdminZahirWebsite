@@ -61,7 +61,7 @@ export async function GET() {
         },
         informations: data.informations ?? undefined,
         resume: data.resume ?? undefined,
-        movie: data.movie ?? undefined,
+        movie: data.movie ? data.movie.trim().replace(/\/embed\/?(?:\?.*)?$/i, "") : undefined,
         local: data.address
           ? {
             cep: data.address.cep ?? undefined,
