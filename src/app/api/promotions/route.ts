@@ -26,8 +26,6 @@ export interface GetPromotionDTO {
   imageUrl: string | null;
   /** Desconto percentual, ex: 20 = 20% OFF */
   discountPercentage: number | null;
-  /** Validade da promoção em ISO 8601 */
-  validUntil: string | null;
   active: boolean;
   profile: {
     id: string;
@@ -71,7 +69,6 @@ export async function GET() {
       description: h.description ?? null,
       imageUrl: h.Profiles?.imageUrl ?? null, // Usa a foto do perfil como solicitado
       discountPercentage: null, // Conforme pedido, o desconto vai no título
-      validUntil: h.validUntil?.toISOString() ?? null,
       active: h.Profiles?.promotionActive ?? true,
       profile: {
         id: h.Profiles?.id ?? "",
