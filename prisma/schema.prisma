@@ -33,7 +33,6 @@ model Profiles {
 
   type       String[]
   categories String[]
-  HomePage   HomePage[]
 
   createdAt DateTime
 }
@@ -57,19 +56,13 @@ model Address {
 }
 
 model Promotion {
-  id          String  @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String?
   description String?
+  isHighlight Boolean   @default(false)
 
   Profiles   Profiles? @relation(fields: [profilesId], references: [id], onDelete: Cascade)
   profilesId String?   @unique
-}
-
-model HomePage {
-  id        String   @id @default(cuid())
-  profileId String
-  profile   Profiles @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  order     Int
 }
 
 model followers {

@@ -101,10 +101,11 @@ export const createProfileSchema = z
       promotion: z.object({
         title: z
           .string()
-          .max(20, "Título da promoção deve ter no máximo 20 caracteres"),
+          .max(40, "Título da promoção deve ter no máximo 40 caracteres"), // Aumentado para comportar descontos no título
         description: z
           .string()
-          .max(250, "Descrição da promoção deve ter no máximo 250 caracteres"),
+          .max(500, "Descrição da promoção deve ter no máximo 500 caracteres"),
+        isHighlight: z.boolean().default(false),
       }),
       categories: z.array(z.string()),
       type: z.array(z.string()),

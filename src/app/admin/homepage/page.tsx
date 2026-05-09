@@ -5,7 +5,8 @@ import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Loader2, GripVertical, X, Plus, Home, Sparkles } from "lucide-react"
+import { Loader2, GripVertical, X, Plus, Home, Sparkles, ChevronLeft } from "lucide-react"
+import Link from "next/link"
 import { toast } from "sonner"
 import type { GetAllProfilesDTO } from "../../api/profiles/route"
 import {
@@ -217,8 +218,8 @@ export default function HomePageManager() {
   }
 
   const handleAddProfile = (profile: GetAllProfilesDTO) => {
-    if (homePageItems.length >= 10) {
-      toast.error("Máximo de 10 perfis na homepage")
+    if (homePageItems.length >= 4) {
+      toast.error("Máximo de 4 destaques na homepage")
       return
     }
 
@@ -247,8 +248,9 @@ export default function HomePageManager() {
     return allProfiles
       .filter((profile) => {
         const matchesSearch = profile.name.toLowerCase().includes(searchTerm.toLowerCase())
+        const hasActivePromotion = profile.promotion?.active === true
         const notInHomePage = !homePageItems.some((item) => item.profileId === profile._id)
-        return matchesSearch && notInHomePage
+        return matchesSearch && notInHomePage && hasActivePromotion
       })
       .slice(0, 20)
   }, [allProfiles, searchTerm, homePageItems])
@@ -263,6 +265,15 @@ export default function HomePageManager() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="mb-8 flex items-center justify-between">
+        <Link href="/admin">
+          <Button variant="ghost" className="gap-2">
+            <ChevronLeft className="w-4 h-4" />
+            Voltar ao Dashboard
+          </Button>
+        </Link>
+      </div>
+
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
@@ -270,10 +281,10 @@ export default function HomePageManager() {
           </div>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-              Gerenciar Homepage
+              Promoções em Destaque
             </h1>
             <p className="text-muted-foreground">
-              Selecione até 10 perfis para aparecer no carrossel principal
+              Selecione até 4 promoções para aparecer no carrossel da Home
             </p>
           </div>
         </div>
@@ -282,16 +293,16 @@ export default function HomePageManager() {
       <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="text-sm text-muted-foreground bg-muted px-4 py-2 rounded-lg border">
-            <span className="font-semibold text-foreground">{homePageItems.length}</span> / 10 perfis
+            <span className="font-semibold text-foreground">{homePageItems.length}</span> / 4 destaques
           </div>
         </div>
 
         <div className="flex gap-2">
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button disabled={homePageItems.length >= 10} className="gap-2">
+              <Button disabled={homePageItems.length >= 4} className="gap-2">
                 <Plus className="w-4 h-4" />
-                Adicionar Perfil
+                Adicionar Destaque
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[80vh]">
@@ -341,7 +352,7 @@ export default function HomePageManager() {
                   ))}
                   {filteredProfiles.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground">
-                      Nenhum perfil encontrado
+                      Nenhuma promoção ativa encontrada
                     </div>
                   )}
                 </div>
@@ -351,7 +362,7 @@ export default function HomePageManager() {
 
           <Button
             onClick={handleSave}
-            disabled={updateMutation.isPending || homePageItems.length === 0}
+            disabled={updateMutation.isPending}
             className="gap-2"
           >
             {updateMutation.isPending ? (

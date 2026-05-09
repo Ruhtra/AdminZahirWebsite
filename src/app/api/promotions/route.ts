@@ -15,6 +15,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
 
 // ── DTO espelhado no front-end (lib/types/promotions.ts) ──────────────────────
 export interface GetPromotionDTO {
@@ -44,26 +45,48 @@ export interface GetPromotionDTO {
 }
 
 export async function GET() {
+  
   try {
-    // TODO: quando a tabela PromotionHighlight existir no banco, substituir por:
-    //
-    // const promotions = await db.promotionHighlight.findMany({
-    //   where: { active: true },
-    //   include: {
-    //     promotion: {
-    //       include: {
-    //         profile: { include: { address: true } },
-    //       },
-    //     },
-    //   },
-    //   orderBy: { createdAt: "desc" },
-    // });
-    //
-    // const response: GetPromotionDTO[] = promotions.map((e) => ({ ... }));
-    // return NextResponse.json(response);
 
-    // Retorna lista vazia enquanto a estrutura não está pronta no banco
-    const response: GetPromotionDTO[] = [];
+    const highlights = await db.promotion.findMany({
+      where: {
+        isHighlight: true,
+        Profiles: {
+          promotionActive: true,
+        },
+      },
+      include: {
+        Profiles: {
+          include: {
+            address: true,
+          },
+        },
+      },
+      take: 4, // Limite de 4 como solicitado
+    });
+
+    const response: GetPromotionDTO[] = highlights.map((h) => ({
+      id: h.id,
+      title: h.title ?? "",
+      description: h.description ?? null,
+      imageUrl: h.Profiles?.imageUrl ?? null, // Usa a foto do perfil como solicitado
+      discountPercentage: null, // Conforme pedido, o desconto vai no título
+      validUntil: h.validUntil?.toISOString() ?? null,
+      active: h.Profiles?.promotionActive ?? true,
+      profile: {
+        id: h.Profiles?.id ?? "",
+        name: h.Profiles?.name ?? "",
+        imageUrl: h.Profiles?.imageUrl ?? null,
+        type: h.Profiles?.type ?? [],
+        local: h.Profiles?.address ? {
+          city: h.Profiles.address.city,
+          uf: h.Profiles.address.uf,
+          country: h.Profiles.address.country,
+        } : null,
+      },
+      createdAt: h.Profiles?.createdAt.toISOString() ?? new Date().toISOString(),
+    }));
+
     return NextResponse.json(response);
   } catch (error) {
     console.error("Failed to fetch promotions:", error);

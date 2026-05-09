@@ -52,6 +52,7 @@ export async function CreateProfile({
     }
   }
 
+
   await db.profiles.create({
     data: {
       address: profile.activeAddress
@@ -83,6 +84,7 @@ export async function CreateProfile({
         create: {
           description: profile.promotion.description,
           title: profile.promotion.title,
+          isHighlight: profile.promotion.isHighlight,
         },
       },
       resume: profile.resume,
@@ -183,6 +185,7 @@ export async function UpdateProfile({
     // }
   }
 
+
   try {
     await db.profiles.update({
       where: {
@@ -231,10 +234,12 @@ export async function UpdateProfile({
             create: {
               description: profile.promotion.description,
               title: profile.promotion.title,
+              isHighlight: profile.promotion.isHighlight,
             },
             update: {
               description: profile.promotion.description,
               title: profile.promotion.title,
+              isHighlight: profile.promotion.isHighlight,
             },
           },
         },

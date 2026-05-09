@@ -1,16 +1,19 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useTransition, useDeferredValue } from "react"
 import type { GetAllProfilesDTO } from "../api/profiles/route"
 import { CreateProfileDialog } from "./_components/CreateProfileDialog"
 import ProfileCard from "./_components/ProfilCard"
+import { FollowersManagerDialog } from "./_components/FollowersManagerDialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2, ChevronUp, ChevronDown } from "lucide-react"
+import { Loader2, ChevronUp, ChevronDown, Sparkles } from "lucide-react"
 import { MultiSelect } from "./_components/MultiSelect"
 import { Country, State } from "country-state-city"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 
 function removeDiacritics(str: string) {
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -26,6 +29,8 @@ export default function AdminPage() {
   const [promotionFilter, setPromotionFilter] = useState(false)
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
   const [sortBy, setSortBy] = useState<"name" | "createdAt">("name")
+  const [isPendingFilter, startTransition] = useTransition()
+  const deferredSearchTerm = useDeferredValue(searchTerm)
 
   const { isPending, data: profiles } = useQuery<GetAllProfilesDTO[]>({
     queryKey: ["profiles"],
@@ -106,7 +111,7 @@ export default function AdminPage() {
 
   const filteredProfiles = useMemo(() => {
     if (!profiles) return []
-    const normalizedSearchTerm = removeDiacritics(searchTerm.toLowerCase())
+    const normalizedSearchTerm = removeDiacritics(deferredSearchTerm.toLowerCase())
     return profiles
       .filter((profile) => {
         const normalizedName = removeDiacritics(profile.name.toLowerCase())
@@ -136,7 +141,7 @@ export default function AdminPage() {
       })
   }, [
     profiles,
-    searchTerm,
+    deferredSearchTerm,
     countryFilter,
     stateFilter,
     categoryFilters,
@@ -170,6 +175,7 @@ export default function AdminPage() {
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
           <h1 className="text-3xl font-bold">Profiles</h1>
           <div className="flex gap-2">
+            <FollowersManagerDialog />
             <Button variant="outline" onClick={() => window.location.href = '/admin/homepage'}>
               Gerenciar Homepage
             </Button>
@@ -178,8 +184,18 @@ export default function AdminPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
-          <Input placeholder="Search by name" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-          <Select value={countryFilter} onValueChange={setCountryFilter}>
+          <Input 
+            placeholder="Search by name" 
+            value={searchTerm} 
+            onChange={(e) => {
+              const val = e.target.value
+              setSearchTerm(val) // Update input immediately
+            }} 
+          />
+          <Select 
+            value={countryFilter} 
+            onValueChange={(val) => startTransition(() => setCountryFilter(val))}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Filter by country" />
             </SelectTrigger>
@@ -194,7 +210,7 @@ export default function AdminPage() {
           </Select>
           <Select
             value={stateFilter}
-            onValueChange={setStateFilter}
+            onValueChange={(val) => startTransition(() => setStateFilter(val))}
             disabled={countryFilter === "all" || !countryFilter}
           >
             <SelectTrigger>
@@ -212,26 +228,27 @@ export default function AdminPage() {
           <MultiSelect
             options={uniqueCategories}
             selected={categoryFilters}
-            onChange={setCategoryFilters}
+            onChange={(val) => startTransition(() => setCategoryFilters(val))}
             placeholder="Filter by categories"
           />
           <MultiSelect
             options={uniqueTypes}
             selected={typeFilters}
-            onChange={setTypeFilters}
+            onChange={(val) => startTransition(() => setTypeFilters(val))}
             placeholder="Filter by types"
           />
-          <div className="flex items-center">
-            <input
-              type="checkbox"
+          <div className="flex items-center justify-between space-x-2 border rounded-md px-3 py-2 bg-background hover:bg-accent/50 transition-colors">
+            <Label htmlFor="promotionFilter" className="flex items-center gap-2 cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <Sparkles className="w-4 h-4 text-brand" />
+              Apenas Promoções
+            </Label>
+            <Switch
               id="promotionFilter"
               checked={promotionFilter}
-              onChange={(e) => setPromotionFilter(e.target.checked)}
-              className="mr-2"
+              onCheckedChange={(val) => startTransition(() => setPromotionFilter(val))}
             />
-            <label htmlFor="promotionFilter">Show only profiles with promotions</label>
           </div>
-          <Select value={sortBy} onValueChange={(value) => setSortBy(value as "name" | "createdAt")}>
+          <Select value={sortBy} onValueChange={(value) => startTransition(() => setSortBy(value as "name" | "createdAt"))}>
             <SelectTrigger>
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
@@ -242,7 +259,7 @@ export default function AdminPage() {
           </Select>
           <Button
             variant="outline"
-            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+            onClick={() => startTransition(() => setSortOrder(sortOrder === "asc" ? "desc" : "asc"))}
             className="flex items-center"
           >
             {sortOrder === "asc" ? <ChevronUp className="mr-2" /> : <ChevronDown className="mr-2" />}
@@ -250,7 +267,7 @@ export default function AdminPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 transition-opacity ${isPendingFilter ? "opacity-50" : "opacity-100"}`}>
           {filteredProfiles.map((profile) => (
             <ProfileCard key={profile._id} profile={profile} />
           ))}

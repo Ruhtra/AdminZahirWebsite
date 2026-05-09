@@ -10,7 +10,7 @@ import { CreateProfileDialog } from "./CreateProfileDialog";
 import { deleteProfile } from "../_actions/Profiles";
 import { toast } from "sonner";
 import { queryClient } from "@/lib/queryCLient";
-import { useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { Country, State } from "country-state-city"
 import {
   AlertDialog,
@@ -28,11 +28,9 @@ interface ProfileCardProps {
   profile: GetAllProfilesDTO;
 }
 
-export default function ProfileCard({ profile }: ProfileCardProps) {
+function ProfileCard({ profile }: ProfileCardProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-  if (profile.name == "teste") console.log(profile);
 
   const handleDelete = async (profileId: string) => {
     try {
@@ -66,7 +64,7 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
     return state?.name || stateCode
   }
 
-  const getLocationString = () => {
+  const locationString = useMemo(() => {
     const country = getCountryName(profile.local?.country)
     const state = getStateName(profile.local?.country, profile.local?.uf)
     const city = profile.local?.city
@@ -79,9 +77,7 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
       return `${country}, ${state}`
     }
     return country
-  }
-
-  const locationString = getLocationString()
+  }, [profile.local?.country, profile.local?.uf, profile.local?.city])
 
   return (
     <>
@@ -93,7 +89,7 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
       <Card className="overflow-hidden">
         <div className="relative aspect-square">
           <Image
-            src={(profile.picture || "/placeholder.svg") + `?v=${Date.now()}`}
+            src={(profile.picture || "/placeholder.svg")}
             alt={profile.name}
             fill
             className="object-cover"
@@ -164,3 +160,5 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
     </>
   );
 }
+
+export default memo(ProfileCard);

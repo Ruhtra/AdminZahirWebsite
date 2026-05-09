@@ -35,50 +35,46 @@ export interface GetAllHomePageDTO {
 
 export async function GET() {
   try {
-    const homePage = await db.homePage.findMany({
+    const highlights = await db.promotion.findMany({
+      where: {
+        isHighlight: true,
+      },
       include: {
-        profile: {
+        Profiles: {
           include: {
             address: true,
-            promotion: true,
           },
         },
       },
-      orderBy: {
-        order: 'asc',
-      },
     });
 
-    const response: GetAllHomePageDTO[] = homePage.map((e) => {
+    // Mapeamos para o mesmo DTO para manter compatibilidade com o front-end atual
+    const response: GetAllHomePageDTO[] = highlights.map((h, index) => {
       return {
-        order: e.order,
+        order: index,
         profile: {
-          _id: e.profileId,
+          _id: h.profilesId!,
           category: {
-            type: e.profile.type,
+            type: h.Profiles?.type ?? [],
           },
-          picture: e.profile.imageUrl ?? undefined,
-          createdAt: e.profile.createdAt,
-          name: e.profile.name,
-          promotion: e.profile.promotion
+          picture: h.Profiles?.imageUrl ?? undefined,
+          createdAt: h.Profiles?.createdAt ?? new Date(),
+          name: h.Profiles?.name ?? "",
+          promotion: {
+            active: h.Profiles?.promotionActive ?? true,
+            description: h.description ?? undefined,
+            title: h.title ?? undefined,
+          },
+          local: h.Profiles?.address
             ? {
-              active: e.profile.promotionActive,
-              description: e.profile.promotion.description ?? undefined,
-              title: e.profile.promotion.title ?? undefined,
-            }
-            : undefined,
-          local: e.profile.address
-            ? {
-              cep: e.profile.address.cep ?? undefined,
-              uf: e.profile.address.uf ?? undefined,
-              country: e.profile.address.country,
-              city: e.profile.address.city ?? undefined,
-              neighborhood: e.profile.address.neighborhood ?? undefined,
-              street: e.profile.address.street ?? undefined,
-              number: e.profile.address.number ?? undefined,
-              // lat: e.profile.address.lat,
-              // lng: e.profile.address.lng,
-              complement: e.profile.address.complement ?? undefined,
+              cep: h.Profiles.address.cep ?? undefined,
+              uf: h.Profiles.address.uf ?? undefined,
+              country: h.Profiles.address.country,
+              city: h.Profiles.address.city ?? undefined,
+              neighborhood: h.Profiles.address.neighborhood ?? undefined,
+              street: h.Profiles.address.street ?? undefined,
+              number: h.Profiles.address.number ?? undefined,
+              complement: h.Profiles.address.complement ?? undefined,
             }
             : undefined,
         },
@@ -87,9 +83,9 @@ export async function GET() {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Failed to fetch homepage:", error);
+    console.error("Failed to fetch homepage highlights:", error);
     return NextResponse.json(
-      { error: "Failed to fetch homepage" },
+      { error: "Failed to fetch homepage highlights" },
       { status: 500 }
     );
   }
@@ -107,31 +103,36 @@ export async function PUT(request: Request) {
       );
     }
 
-    if (body.length > 10) {
+    if (body.length > 4) {
       return NextResponse.json(
-        { error: "Maximum 10 profiles allowed" },
+        { error: "Maximum 4 highlights allowed" },
         { status: 400 }
       );
     }
 
-    // Deletar todos os registros existentes
-    await db.homePage.deleteMany({});
+    // 1. Resetar todos os destaques atuais
+    await db.promotion.updateMany({
+      where: { isHighlight: true },
+      data: { isHighlight: false }
+    });
 
-    // Criar novos registros
-    if (body.length > 0) {
-      await db.homePage.createMany({
-        data: body.map((item: { profileId: string; order: number }) => ({
-          profileId: item.profileId,
-          order: item.order,
-        })),
+    // 2. Ativar os novos destaques
+    const profileIds = body.map((item: { profileId: string }) => item.profileId);
+    
+    if (profileIds.length > 0) {
+      await db.promotion.updateMany({
+        where: {
+          profilesId: { in: profileIds }
+        },
+        data: { isHighlight: true }
       });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to update homepage:", error);
+    console.error("Failed to update highlights:", error);
     return NextResponse.json(
-      { error: "Failed to update homepage" },
+      { error: "Failed to update highlights" },
       { status: 500 }
     );
   }

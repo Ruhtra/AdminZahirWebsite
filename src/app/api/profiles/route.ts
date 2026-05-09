@@ -17,6 +17,7 @@ export interface GetAllProfilesDTO {
     active: boolean;
     title?: string;
     description?: string;
+    isHighlight?: boolean;
   };
   telephones: {
     whatsapp: string[];
@@ -80,6 +81,7 @@ export async function GET() {
           active: data.promotionActive,
           description: data.promotion?.description ?? undefined,
           title: data.promotion?.title ?? undefined,
+          isHighlight: data.promotion?.isHighlight ?? false,
         },
         createdAt: data.createdAt,
       };
